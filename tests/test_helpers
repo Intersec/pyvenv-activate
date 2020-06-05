@@ -1,0 +1,110 @@
+#!/bin/sh
+# Disable unused variable.
+#   shellcheck disable=SC2034
+
+# {{{ Check test variables
+
+if command [ -z "${TEST_SCRIPT:-}" ]; then
+    command echo "\$TEST_SCRIPT not set" >&2
+    command exit 1
+fi
+
+if command [ -z "${TEST_DIR:-}" ]; then
+    command echo "\$TEST_DIR not set" >&2
+    command exit 1
+fi
+
+if command [ "$TEST_DIR" != "$(command dirname -- "$TEST_SCRIPT")" ]; then
+    echo "\$TEST_DIR is not valid, expected $(dirname -- "$TEST_SCRIPT")" \
+         ", got $TEST_DIR" >&2
+    exit 1
+fi
+
+# }}}
+# {{{ Set common variables and options
+
+# Use absolute path for SHUNIT_PARENT
+SHUNIT_PARENT="$(cd -P -- "$TEST_DIR" \
+    && command printf '%s\n' \
+    "$(command pwd -P)/$(basename -- "$TEST_SCRIPT")")"
+
+
+# Set shwordsplit for zsh
+[ -n "${ZSH_VERSION:-}" ] && setopt shwordsplit
+
+
+# }}}
+# {{{ Setup
+
+th_setup_env_pipenv_install() {
+    th_setup_subshell_() {
+        # Unset all pipenv environment variables
+        # shellcheck disable=SC2046
+        unset $(command env | command sed -n 's/^\(PIPENV_.*\)=.*/\1/p')
+
+        cd -- "$1" || return 1
+        PIPENV_VENV_IN_PROJECT=1 pipenv install
+    }
+
+    (th_setup_subshell_ "$@") || return 1
+    unset th_setup_subshell_
+}
+
+th_setup_envs_tmpdir() {
+    command echo "Setting up pipenv environments temporary directory" >&2
+
+    command cp -R -- "$TEST_DIR/envs/." "$TEST_ENVS_TMPDIR"
+    for th_env_ in "$TEST_ENVS_TMPDIR"/*; do
+        th_setup_env_pipenv_install "$th_env_"
+    done
+    command touch "$TEST_ENVS_TMPDIR/.setup"
+    command echo
+    unset env_
+}
+
+# }}}
+# {{{ Default setup/teardown functions
+
+th_oneTimeSetUp() {
+    TEST_START_PWD="$(command pwd -P)"
+
+    if command [ -z "$TEST_ENVS_TMPDIR" ]; then
+        TEST_ENVS_TMPDIR="$SHUNIT_TMPDIR/envs"
+        mkdir -- "$TEST_ENVS_TMPDIR"
+    fi
+
+    if ! command [ -f "$TEST_ENVS_TMPDIR/.setup" ]; then
+        th_setup_envs_tmpdir
+    fi
+}
+oneTimeSetUp() {
+    th_oneTimeSetUp
+}
+
+
+th_oneTimeTearDown() {
+    :
+}
+oneTimeTearDown() {
+    th_oneTimeTearDown
+}
+
+
+th_setUp() {
+    # Get back to tmpdir every time we start or exit test to provide
+    # consistency.
+    cd -- "$TEST_START_PWD" || return 1
+}
+setUp() {
+    th_setUp
+}
+
+
+th_tearDown() {
+    th_setUp
+}
+tearDown() {
+    th_tearDown
+}
+
+# }}}

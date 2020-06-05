@@ -1,0 +1,21 @@
+#!/bin/sh
+# Disable source following.
+#   shellcheck disable=SC1090,SC1091
+
+
+TEST_SCRIPT="$0"
+TEST_DIR="$(dirname "$TEST_SCRIPT")"
+. "$TEST_DIR/test_helpers"
+
+
+# Create temporary data directory and setup it for all tests.
+TEST_ENVS_TMPDIR="$(mktemp -dqt pipenv_activate_envs_tmpdir.XXXXXX)" || exit 1
+export TEST_ENVS_TMPDIR
+trap 'rm -rf "$TEST_ENVS_TMPDIR"; trap - EXIT; exit' EXIT INT HUP
+th_setup_envs_tmpdir
+
+
+# Set current dir to test dir and run test_runner with correct lib path
+cd -- "$TEST_DIR" || exit 1
+export LIB_DIR="./shunit2/lib"
+./shunit2/test_runner "$@"
