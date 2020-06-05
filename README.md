@@ -1,5 +1,7 @@
 # Pipenv activate
 
+[![Build Status](https://travis-ci.org/nicopauss/pipenv-activate.svg?branch=master)](https://travis-ci.org/nicopauss/pipenv-activate)
+
 TODO
 
 ## Tests
