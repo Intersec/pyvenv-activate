@@ -10,6 +10,9 @@ TEST_DIR="$(dirname -- "$TEST_SCRIPT")"
 . "$TEST_DIR/test_helpers"
 
 
+. "$TEST_DIR/../pipenv-activate.sh"
+
+
 ENV_1_SIX_VERSION="1.15.0"
 ENV_2_SIX_VERSION="None"
 
@@ -38,6 +41,23 @@ test_pipenv_run() {
     cd -- "$TEST_ENVS_TMPDIR/2" || fail "cd to env 2"
     assertEquals "six version in env 2" "$ENV_2_SIX_VERSION" \
         "$(get_six_version 'pipenv run')"
+}
+
+
+test_pipenv_activate() {
+    # Change directory to env 1 and check six version.
+    cd -- "$TEST_ENVS_TMPDIR/1" || fail "cd to env 1"
+    pipenv_activate || fail "pipenv_activate in env 1"
+    assertEquals "six version in env 1" "$ENV_1_SIX_VERSION" \
+        "$(get_six_version)"
+    pipenv_deactivate || fail "deactivate env 1"
+
+    # Change directory to env 2 and check six version.
+    cd -- "$TEST_ENVS_TMPDIR/2" || fail "cd to env 2"
+    pipenv_activate || fail "pipenv_activate in env 2"
+    assertEquals "six version in env 2" "$ENV_2_SIX_VERSION" \
+        "$(get_six_version)"
+    pipenv_deactivate || fail "deactivate env 2"
 }
 
 
