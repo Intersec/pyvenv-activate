@@ -25,18 +25,28 @@ oneTimeSetUp() {
 
 
 test_pipenv_run() {
-    assertEquals "$(get_python_path)" "$HOST_PYTHON_PATH"
+    # Check test environment is ok.
+    assertEquals "check host env" "$HOST_PYTHON_PATH" "$(get_python_path)"
 
-    cd -- "$TEST_ENVS_TMPDIR/1" || return 1
-    assertEquals "$HOST_PYTHON_PATH" "$(get_python_path)"
+    # Change directory in env 1 and check python path with `pipenv run`.
+    cd -- "$TEST_ENVS_TMPDIR/1" || fail "cd to env 1"
+    assertEquals "python path equals to host in env 1 without pipenv run"\
+        "$HOST_PYTHON_PATH" "$(get_python_path)"
+
     env_1_python_path="$(get_python_path 'pipenv run')"
-    assertNotEquals "$HOST_PYTHON_PATH" "$env_1_python_path" 
+    assertNotEquals "python path not equals to host in env 1 with pipenv run"\
+        "$HOST_PYTHON_PATH" "$env_1_python_path"
 
-    cd -- "$TEST_ENVS_TMPDIR/2" || return 1
-    assertEquals "$HOST_PYTHON_PATH" "$(get_python_path)"
+    # Change directory in env 2 and check python path with `pipenv run`.
+    cd -- "$TEST_ENVS_TMPDIR/2" || fail "cd to env 2"
+    assertEquals "python path equals to host in env 2 without pipenv run"\
+        "$HOST_PYTHON_PATH" "$(get_python_path)"
+
     env_2_python_path="$(get_python_path 'pipenv run')"
-    assertNotEquals "$HOST_PYTHON_PATH" "$env_2_python_path"
-    assertNotEquals "$env_1_python_path" "$env_2_python_path"
+    assertNotEquals "python path not equals to host in env 2 with pipenv run"\
+        "$HOST_PYTHON_PATH" "$env_2_python_path"
+    assertNotEquals "python path not equals to env 1 in env 2 with pipenv run"\
+        "$env_1_python_path" "$env_2_python_path"
 }
 
 
