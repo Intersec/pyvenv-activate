@@ -10,9 +10,6 @@ TEST_DIR="$(dirname -- "$TEST_SCRIPT")"
 . "$TEST_DIR/test_helpers"
 
 
-. "$TEST_DIR/../pipenv-activate.sh"
-
-
 ENV_1_SIX_VERSION="1.15.0"
 ENV_2_SIX_VERSION="None"
 

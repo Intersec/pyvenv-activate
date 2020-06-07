@@ -12,9 +12,6 @@ TEST_DIR="$(dirname -- "$TEST_SCRIPT")"
 . "$TEST_DIR/test_helpers"
 
 
-. "$TEST_DIR/../pipenv-activate.sh"
-
-
 get_python_path() {
     cmd_prefix="${1:-}"
 

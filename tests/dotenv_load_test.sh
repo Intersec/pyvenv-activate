@@ -10,9 +10,6 @@ TEST_DIR="$(dirname -- "$TEST_SCRIPT")"
 . "$TEST_DIR/test_helpers"
 
 
-. "$TEST_DIR/../pipenv-activate.sh"
-
-
 ENV_3_VAR_A="foo"
 ENV_3_VAR_B="bar"
 ENV_3_VAR_C=""
