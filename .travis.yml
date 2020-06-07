@@ -31,4 +31,4 @@ matrix:
     - os: linux
       script:
         # Run the source through ShellCheck (http://www.shellcheck.net).
-        - shellcheck tests/run_all_tests tests/*_test.sh tests/test_helpers
+        - shellcheck pipenv-activate.sh tests/run_all_tests tests/*_test.sh tests/test_helpers
