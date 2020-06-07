@@ -57,7 +57,7 @@ test_pipenv_activate() {
     # Cannot activate non virtual environment with pipenv_activate
     err_msg="$(pipenv_activate "$TEST_ENVS_TMPDIR" 2>&1)"\
         && fail "pipenv_activate without valid virtualenv should fail"
-    assertEquals "pipenv_activate without valid virtualenv error message"\
+    assertContains "pipenv_activate without valid virtualenv error message"\
         "$TEST_ENVS_TMPDIR is not a valid virtual environment" "$err_msg"
     assertEquals "python path to host after pipenv_activate without valid virtualenv"\
         "$HOST_PYTHON_PATH" "$(get_python_path)"
@@ -83,7 +83,7 @@ test_pipenv_activate() {
     # Cannot activate env 2 while env 1 is still active.
     err_msg="$(pipenv_activate 2>&1)"\
         && fail "pipenv_activate in env 2 with env 1 still active should fail"
-    assertEquals "pipenv_activate in env 2 with env 1 still active error message"\
+    assertContains "pipenv_activate in env 2 with env 1 still active error message"\
         "another virtual environment is already active" "$err_msg"
     assertEquals "python path to env 1 after invalid pipenv_activate in env 2"\
         "$env_1_python_path" "$(get_python_path)"
