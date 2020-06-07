@@ -6,17 +6,17 @@
 
 # {{{ Check test variables
 
-if command [ -z "${TEST_SCRIPT:-}" ]; then
-    command echo "\$TEST_SCRIPT not set" >&2
-    command exit 1
+if [ -z "${TEST_SCRIPT:-}" ]; then
+    echo "\$TEST_SCRIPT not set" >&2
+    exit 1
 fi
 
-if command [ -z "${TEST_DIR:-}" ]; then
-    command echo "\$TEST_DIR not set" >&2
-    command exit 1
+if [ -z "${TEST_DIR:-}" ]; then
+    echo "\$TEST_DIR not set" >&2
+    exit 1
 fi
 
-if command [ "$TEST_DIR" != "$(command dirname -- "$TEST_SCRIPT")" ]; then
+if [ "$TEST_DIR" != "$(dirname -- "$TEST_SCRIPT")" ]; then
     echo "\$TEST_DIR is not valid, expected $(dirname -- "$TEST_SCRIPT")" \
          ", got $TEST_DIR" >&2
     exit 1
@@ -32,8 +32,8 @@ fi
 
 # Use absolute path for SHUNIT_PARENT
 SHUNIT_PARENT="$(cd -P -- "$TEST_DIR" \
-    && command printf '%s\n' \
-    "$(command pwd -P)/$(basename -- "$TEST_SCRIPT")")"
+    && printf '%s\n' \
+    "$(pwd -P)/$(basename -- "$TEST_SCRIPT")")"
 
 
 # Set shwordsplit for zsh
@@ -79,18 +79,18 @@ export PIPENV_VENV_IN_PROJECT=1
 
 
 th_setup_envs_tmpdir() {
-    command echo "Setting up pipenv environments temporary directory" >&2
+    echo "Setting up pipenv environments temporary directory" >&2
 
-    th_start_pwd_="$(command pwd -P)"
-    command cp -R -- "$TEST_DIR/envs/." "$TEST_ENVS_TMPDIR"
+    th_start_pwd_="$(pwd -P)"
+    cp -R -- "$TEST_DIR/envs/." "$TEST_ENVS_TMPDIR"
     for th_env_ in "$TEST_ENVS_TMPDIR"/*; do
         cd -- "$th_env_" || return 1
         pipenv install || return 1
         cd -- "$th_start_pwd_" || return 1
     done
 
-    command touch "$TEST_ENVS_TMPDIR/.setup"
-    command echo
+    touch "$TEST_ENVS_TMPDIR/.setup"
+    echo
     unset th_env_
 }
 
@@ -98,14 +98,14 @@ th_setup_envs_tmpdir() {
 # {{{ Default setup/teardown functions
 
 th_oneTimeSetUp() {
-    TEST_START_PWD="$(command pwd -P)"
+    TEST_START_PWD="$(pwd -P)"
 
-    if command [ -z "$TEST_ENVS_TMPDIR" ]; then
+    if [ -z "$TEST_ENVS_TMPDIR" ]; then
         TEST_ENVS_TMPDIR="$SHUNIT_TMPDIR/envs"
         mkdir -- "$TEST_ENVS_TMPDIR"
     fi
 
-    if ! command [ -f "$TEST_ENVS_TMPDIR/.setup" ]; then
+    if ! [ -f "$TEST_ENVS_TMPDIR/.setup" ]; then
         th_setup_envs_tmpdir
     fi
 }
