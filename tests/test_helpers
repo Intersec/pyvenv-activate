@@ -43,27 +43,52 @@ SHUNIT_PARENT="$(cd -P -- "$TEST_DIR" \
 # }}}
 # {{{ Setup pipenv environments
 
-th_setup_env_pipenv_install() {
-    th_setup_subshell_() {
-        # Unset all pipenv environment variables
-        # shellcheck disable=SC2046
-        unset $(command env | command sed -n 's/^\(PIPENV_.*\)=.*/\1/p')
 
-        cd -- "$1" || return 1
-        PIPENV_VENV_IN_PROJECT=1 pipenv install
-    }
+# Use all default Pipenv environment variables.
+unset PIPENV_CACHE_DIR
+unset PIPENV_COLORBLIND
+unset PIPENV_DEFAULT_PYTHON_VERSION
+unset PIPENV_DONT_LOAD_ENV
+unset PIPENV_DONT_USE_ASDF
+unset PIPENV_DONT_USE_PYENV
+unset PIPENV_DOTENV_LOCATION
+unset PIPENV_EMULATOR
+unset PIPENV_HIDE_EMOJIS
+unset PIPENV_IGNORE_VIRTUALENVS
+unset PIPENV_INSTALL_TIMEOUT
+unset PIPENV_MAX_DEPTH
+unset PIPENV_MAX_RETRIES
+unset PIPENV_MAX_ROUNDS
+unset PIPENV_MAX_SUBPROCESS
+unset PIPENV_NOSPIN
+unset PIPENV_NO_INHERIT
+unset PIPENV_PIPFILE
+unset PIPENV_PYPI_MIRROR
+unset PIPENV_RESOLVE_VCS
+unset PIPENV_SHELL
+unset PIPENV_SHELL_FANCY
+unset PIPENV_SKIP_LOCK
+unset PIPENV_SPINNER
+unset PIPENV_TIMEOUT
+unset PIPENV_VENV_IN_PROJECT
+unset PIPENV_YES
 
-    (th_setup_subshell_ "$@") || return 1
-    unset th_setup_subshell_
-}
+# Except these ones.
+export PIPENV_IGNORE_VIRTUALENVS=1
+export PIPENV_VENV_IN_PROJECT=1
+
 
 th_setup_envs_tmpdir() {
     command echo "Setting up pipenv environments temporary directory" >&2
 
+    th_start_pwd_="$(command pwd -P)"
     command cp -R -- "$TEST_DIR/envs/." "$TEST_ENVS_TMPDIR"
     for th_env_ in "$TEST_ENVS_TMPDIR"/*; do
-        th_setup_env_pipenv_install "$th_env_"
+        cd -- "$th_env_" || return 1
+        pipenv install || return 1
+        cd -- "$th_start_pwd_" || return 1
     done
+
     command touch "$TEST_ENVS_TMPDIR/.setup"
     command echo
     unset th_env_

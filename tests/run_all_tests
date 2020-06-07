@@ -16,4 +16,4 @@ trap 'rm -rf "$TEST_ENVS_TMPDIR"; trap - EXIT; exit' EXIT INT HUP
 # Set current dir to test dir and run test_runner with correct lib path
 cd -- "$TEST_DIR" || exit 1
 export LIB_DIR="./shunit2/lib"
-./shunit2/test_runner "$@"
+./shunit2/test_runner "$@" || exit 1

@@ -50,7 +50,8 @@ pipenv_activate() {
 #   0 on success, 1 on error.
 pipenv_deactivate() {
     if command [ -n "$VIRTUAL_ENV" ]; then
-        deactivate || return 1
+        deactivate nondestructive || return 1
+        unset -f deactivate
     fi
     unset PIPENV_ACTIVE
     return 0
