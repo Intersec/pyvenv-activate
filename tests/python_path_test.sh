@@ -19,7 +19,7 @@ get_python_path() {
 }
 
 oneTimeSetUp() {
-    th_oneTimeSetUp
+    th_oneTimeSetUp || return 1
     HOST_PYTHON_PATH="$(get_python_path)"
 }
 

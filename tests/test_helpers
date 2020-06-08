@@ -81,17 +81,17 @@ export PIPENV_VENV_IN_PROJECT=1
 th_setup_envs_tmpdir() {
     echo "Setting up pipenv environments temporary directory" >&2
 
-    th_start_pwd_="$(pwd -P)"
     cp -R -- "$TEST_DIR/envs/." "$TEST_ENVS_TMPDIR"
+
     for th_env_ in "$TEST_ENVS_TMPDIR"/*; do
-        cd -- "$th_env_" || return 1
-        pipenv install || return 1
-        cd -- "$th_start_pwd_" || return 1
+       (cd -- "$th_env_" && pipenv install) || return 1
     done
 
-    touch "$TEST_ENVS_TMPDIR/.setup"
+    touch "$TEST_ENVS_TMPDIR/.setup" || return 1
     echo
     unset th_env_
+
+    return 0
 }
 
 # }}}
@@ -102,12 +102,13 @@ th_oneTimeSetUp() {
 
     if [ -z "$TEST_ENVS_TMPDIR" ]; then
         TEST_ENVS_TMPDIR="$SHUNIT_TMPDIR/envs"
-        mkdir -- "$TEST_ENVS_TMPDIR"
+        mkdir -- "$TEST_ENVS_TMPDIR" || return 1
     fi
 
     if ! [ -f "$TEST_ENVS_TMPDIR/.setup" ]; then
-        th_setup_envs_tmpdir
+        th_setup_envs_tmpdir || return 1
     fi
+    return 0
 }
 oneTimeSetUp() {
     th_oneTimeSetUp
