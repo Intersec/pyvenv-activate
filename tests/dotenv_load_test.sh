@@ -46,9 +46,6 @@ test_pipenv_run() {
 
 
 test_pipenv_activate() {
-    # TODO: support dotenv loading with python_activate
-    startSkipping
-
     # Change directory to env 3 and check dotenv variables.
     cd -- "$TEST_ENVS_TMPDIR/3" || fail "cd to env 3"
     pipenv_activate || fail "pipenv_activate in env 3"
