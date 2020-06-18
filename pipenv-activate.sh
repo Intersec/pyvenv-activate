@@ -167,12 +167,12 @@ pipenv_activate() {
         return 1
     fi
 
-    _pipenv_activate_load_dotenv "$pa_proj_dir_"
+    _pipenv_activate_load_dotenv "$pa_proj_dir_" || return 1
 
     export PIPENV_ACTIVE=1
 
     # shellcheck disable=SC1090
-    . "$pa_venv_dir_/bin/activate"
+    . "$pa_venv_dir_/bin/activate" || return 1
 
     unset pa_proj_dir_ pa_venv_dir_
     return 0
