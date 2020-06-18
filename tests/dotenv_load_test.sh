@@ -68,4 +68,32 @@ test_pipenv_activate() {
 }
 
 
+test_pipenv_auto_activate_check_proj() {
+    # Change directory to env 3 and check dotenv variables.
+    cd -- "$TEST_ENVS_TMPDIR/3" || fail "cd to env 3"
+    pipenv_auto_activate_check_proj \
+        || fail "pipenv_auto_activate_check_proj in env 3"
+    assertEquals "VAR A in env 3" "$ENV_3_VAR_A" "$(get_env_var "VAR_A")"
+    assertEquals "VAR B in env 3" "$ENV_3_VAR_B" "$(get_env_var "VAR_B")"
+    assertEquals "VAR C in env 3" "$ENV_3_VAR_C" "$(get_env_var "VAR_C")"
+    assertEquals "VAR D in env 3" "$ENV_3_VAR_D" "$(get_env_var "VAR_D")"
+    assertEquals "VAR E in env 3" "$ENV_3_VAR_E" "$(get_env_var "VAR_E")"
+
+    # Change directory to env 2 and check dotenv variables.
+    cd -- "$TEST_ENVS_TMPDIR/2" || fail "cd to env 2"
+    pipenv_auto_activate_check_proj \
+        || fail "pipenv_auto_activate_check_proj in env 2"
+    assertNull "VAR A in env 2" "$(get_env_var "VAR_A")"
+    assertNull "VAR B in env 2" "$(get_env_var "VAR_B")"
+    assertNull "VAR C in env 2" "$(get_env_var "VAR_C")"
+    assertNull "VAR D in env 2" "$(get_env_var "VAR_D")"
+    assertNull "VAR E in env 2" "$(get_env_var "VAR_E")"
+
+    # Go back to envs tmpdir
+    cd -- "$TEST_ENVS_TMPDIR" || fail "cd to envs tmpdir"
+    pipenv_auto_activate_check_proj \
+        || fail "pipenv_auto_activate_check_proj in envs tmpdir"
+}
+
+
 . "$TEST_DIR/shunit2/shunit2"

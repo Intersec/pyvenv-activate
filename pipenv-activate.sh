@@ -204,3 +204,84 @@ pipenv_deactivate() {
 }
 
 # }}}
+# {{{ Pipenv auto activate
+# {{{ Change directory command
+
+# Find project directory containing a Pipenv file.
+#
+# It respects the PIPENV_MAX_DEPTH environment variable.
+#
+# Outputs:
+#   The Pipenv project root directory.
+_pipenv_auto_activate_find_proj_dir() {
+    pa_current_dir_="$(pwd)"
+
+    # Default PIPENV_MAX_DEPTH is 3 according to Pipenv documentation.
+    for _ in seq 1 "${PIPENV_MAX_DEPTH:-3}"; do
+        if [ -r "$pa_current_dir_/Pipfile" ]; then
+            echo "$pa_current_dir_"
+            break
+        fi
+        pa_current_dir_="$(dirname "$pa_current_dir_")"
+    done
+
+    unset pa_current_dir_
+}
+
+# Function to be run on prompt or when the current directory is changed to
+# auto activate or deactivate the Pipenv environment.
+#
+# Returns:
+#   0 on success, 1 on error.
+pipenv_auto_activate_check_proj() {
+    pa_proj_dir_="$(_pipenv_auto_activate_find_proj_dir)"
+
+    if [ -n "$_PIPENV_AUTO_ACTIVATE_PROJ_DIR" ] \
+    && [ "$pa_proj_dir_" != "$_PIPENV_AUTO_ACTIVATE_PROJ_DIR" ]; then
+        # Deactivate the virtual environment if we have left the pipenv
+        # directory.
+        pipenv_deactivate >&2 || return 1
+        unset _PIPENV_AUTO_ACTIVATE_PROJ_DIR
+    fi
+
+    if [ -n "$pa_proj_dir_" ] \
+    && [ "$pa_proj_dir_" != "$_PIPENV_AUTO_ACTIVATE_PROJ_DIR" ] \
+    && [ -z "$VIRTUAL_ENV" ]; then
+        pa_pipenv_env_="$(pipenv --venv 2>/dev/null)"
+        if [ -n "$pa_pipenv_env_" ]; then
+            # Activate the virtual environment if we have entered a new pipenv
+            # directory and that no virtual environment has been activated
+            # before.
+            export _PIPENV_AUTO_ACTIVATE_PROJ_DIR="$pa_proj_dir_"
+            pipenv_activate "$pa_proj_dir_" "$pa_pipenv_env_" >&2 || return 1
+        fi
+    fi
+    unset pa_proj_dir_ pa_pipenv_env_
+}
+
+# }}}
+# {{{ Enable
+
+# Enable auto activate Pipenv environment.
+#
+# Returns:
+#   0 on success, 1 on error.
+pipenv_auto_activate_enable() {
+    echo "TODO" >&2
+    return 1
+}
+
+# }}}
+# {{{ Disable
+
+# Disable auto activate Pipenv environment.
+#
+# Returns:
+#   0 on success, 1 on error.
+pipenv_auto_activate_disable() {
+    echo "TODO" >&2
+    return 1
+}
+
+# }}}
+# }}}

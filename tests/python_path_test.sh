@@ -122,4 +122,62 @@ test_pipenv_activate() {
 }
 
 
+test_pipenv_auto_activate_check_proj() {
+    # Check test environment is ok.
+    assertEquals "check host env" "$HOST_PYTHON_PATH" "$(get_python_path)"
+
+    # Using pipenv_auto_activate_check_proj does nothing when not in a Pipenv
+    # project.
+    pipenv_auto_activate_check_proj \
+        || fail "pipenv_auto_activate_check_proj in host env"
+    assertEquals "after pipenv_auto_activate_check_proj host env" \
+        "$HOST_PYTHON_PATH" "$(get_python_path)"
+
+    # Change directory in env 1 and check python path after check_proj.
+    cd -- "$TEST_ENVS_TMPDIR/1" || fail "cd to env 1"
+    pipenv_auto_activate_check_proj \
+        || fail "pipenv_auto_activate_check_proj env 1"
+    env_1_python_path="$(get_python_path)"
+    assertNotEquals "python path not equals to host in env 1 after check_proj"\
+        "$HOST_PYTHON_PATH" "$env_1_python_path"
+
+    # Using check_proj twice has no effect.
+    pipenv_auto_activate_check_proj \
+        || fail "pipenv_auto_activate_check_proj env 1 twice"
+    assertEquals "python path equals to env 1 after check_proj twice"\
+        "$(get_python_path)" "$env_1_python_path"
+
+    # Change directory to tmpdir and check python path after check_proj.
+    cd -- "$TEST_ENVS_TMPDIR" || fail "cd to envs tmpdir"
+    pipenv_auto_activate_check_proj \
+        || fail "pipenv_auto_activate_check_proj envs tmpdir"
+    assertEquals "python path equals to host in envs tmpdir after check_proj"\
+        "$HOST_PYTHON_PATH" "$(get_python_path)"
+
+    # Change directory in env 2 and check python path after check_proj.
+    cd -- "$TEST_ENVS_TMPDIR/2" || fail "cd to env 2"
+    pipenv_auto_activate_check_proj \
+        || fail "pipenv_auto_activate_check_proj env 2"
+    env_2_python_path="$(get_python_path)"
+    assertNotEquals "python path not equals to host in env 2 after check_proj"\
+        "$HOST_PYTHON_PATH" "$env_2_python_path"
+    assertNotEquals "python path not equals to env 1 in env 2 after check_proj"\
+        "$env_1_python_path" "$env_2_python_path"
+
+    # Get back to env 1 directly and check python path after check_proj.
+    cd -- "$TEST_ENVS_TMPDIR/1" || fail "cd to env 1"
+    pipenv_auto_activate_check_proj \
+        || fail "pipenv_auto_activate_check_proj env 1"
+    assertEquals "python path equals to env 1 back from env 2 after check_proj"\
+        "$(get_python_path)" "$env_1_python_path"
+
+    # Change directory to tmpdir and check python path after check_proj.
+    cd -- "$TEST_ENVS_TMPDIR" || fail "cd to envs tmpdir"
+    pipenv_auto_activate_check_proj \
+        || fail "pipenv_auto_activate_check_proj envs tmpdir"
+    assertEquals "python path equals to host in envs tmpdir after check_proj"\
+        "$HOST_PYTHON_PATH" "$(get_python_path)"
+}
+
+
 . "$TEST_DIR/shunit2/shunit2"
