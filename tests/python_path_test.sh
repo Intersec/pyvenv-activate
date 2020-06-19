@@ -180,4 +180,48 @@ test_pipenv_auto_activate_check_proj() {
 }
 
 
+test_pipenv_auto_activate_redefine_cd() {
+    _pipenv_auto_activate_enable_redefine_cd || fail "enable redefine cd"
+
+    # Check test environment is ok.
+    assertEquals "check host env" "$HOST_PYTHON_PATH" "$(get_python_path)"
+
+    # Change directory in env 1 and check python path.
+    cd -- "$TEST_ENVS_TMPDIR/1" || fail "cd to env 1"
+    env_1_python_path="$(get_python_path)"
+    assertNotEquals "python path not equals to host in env 1 after cd"\
+        "$HOST_PYTHON_PATH" "$env_1_python_path"
+
+    # Change directory to tmpdir and check python path.
+    cd -- "$TEST_ENVS_TMPDIR" || fail "cd to envs tmpdir"
+    assertEquals "python path equals to host in envs tmpdir after cd"\
+        "$HOST_PYTHON_PATH" "$(get_python_path)"
+
+    # Change directory in env 2 and check python path.
+    cd -- "$TEST_ENVS_TMPDIR/2" || fail "cd to env 2"
+    env_2_python_path="$(get_python_path)"
+    assertNotEquals "python path not equals to host in env 2 after cd"\
+        "$HOST_PYTHON_PATH" "$env_2_python_path"
+    assertNotEquals "python path not equals to env 1 in env 2 after cd"\
+        "$env_1_python_path" "$env_2_python_path"
+
+    # Get back to env 1 directly and check python path.
+    cd -- "$TEST_ENVS_TMPDIR/1" || fail "cd to env 1"
+    assertEquals "python path equals to env 1 back from env 2 after cd"\
+        "$(get_python_path)" "$env_1_python_path"
+
+    # Change directory to tmpdir and check python path.
+    cd -- "$TEST_ENVS_TMPDIR" || fail "cd to envs tmpdir"
+    assertEquals "python path equals to host in envs tmpdir after cd"\
+        "$HOST_PYTHON_PATH" "$(get_python_path)"
+
+    _pipenv_auto_activate_disable_redefine_cd || fail "disable redefine cd"
+
+    # Change directory in env 1 and check python path.
+    cd -- "$TEST_ENVS_TMPDIR/1" || fail "cd to env 1"
+    assertEquals "python path equals to host in env 1 after cd"\
+        "$HOST_PYTHON_PATH" "$(get_python_path)"
+}
+
+
 . "$TEST_DIR/shunit2/shunit2"

@@ -262,25 +262,66 @@ pipenv_auto_activate_check_proj() {
 # }}}
 # {{{ Enable
 
+# Enable auto activate Pipenv environment by redefining the cd command.
+#
+# This should work on any POSIX shell, but there are some drawbacks.
+# We need to redefine the command cd with our own function, and we can only
+# check the project directory when changing the current directory.
+#
+# Returns:
+#   0 on success, 1 on error.
+_pipenv_auto_activate_enable_redefine_cd() {
+    if [ "$(type cd)" != "cd is a shell builtin" ]; then
+        echo "command cd is already redefined" >&2
+        return 1
+    fi
+
+    # Some shells use `builtin` for calling the original cd command, others
+    # use `command`.
+    if (builtin echo "123" >/dev/null 2>&1); then
+        cd() {
+            builtin cd "$@" && pipenv_auto_activate_check_proj
+        }
+    else
+        cd() {
+            command cd "$@" && pipenv_auto_activate_check_proj
+        }
+    fi
+
+    return 0
+}
+
 # Enable auto activate Pipenv environment.
 #
 # Returns:
 #   0 on success, 1 on error.
 pipenv_auto_activate_enable() {
-    echo "TODO" >&2
-    return 1
+    _pipenv_auto_activate_enable_redefine_cd
 }
 
 # }}}
 # {{{ Disable
+
+# Disable auto activate Pipenv environment when redefining the cd command.
+#
+# Returns:
+#   0 on success, 1 on error.
+_pipenv_auto_activate_disable_redefine_cd() {
+    if [ "$(type cd)" = "cd is a shell builtin" ]; then
+        # Nothing to do.
+        return 0
+    fi
+
+    unset -f cd || return 1
+    return 0
+}
 
 # Disable auto activate Pipenv environment.
 #
 # Returns:
 #   0 on success, 1 on error.
 pipenv_auto_activate_disable() {
-    echo "TODO" >&2
-    return 1
+    _pipenv_auto_activate_disable_redefine_cd
 }
 
 # }}}
