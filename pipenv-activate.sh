@@ -217,7 +217,8 @@ _pipenv_auto_activate_find_proj_dir() {
     pa_current_dir_="$(pwd)"
 
     # Default PIPENV_MAX_DEPTH is 3 according to Pipenv documentation.
-    for _ in seq 1 "${PIPENV_MAX_DEPTH:-3}"; do
+    # shellcheck disable=SC2034
+    for pa_i_ in seq 1 "${PIPENV_MAX_DEPTH:-3}"; do
         if [ -r "$pa_current_dir_/Pipfile" ]; then
             echo "$pa_current_dir_"
             break
@@ -225,7 +226,7 @@ _pipenv_auto_activate_find_proj_dir() {
         pa_current_dir_="$(dirname "$pa_current_dir_")"
     done
 
-    unset pa_current_dir_
+    unset pa_current_dir_ pa_i_
 }
 
 # Function to be run on prompt or when the current directory is changed to
