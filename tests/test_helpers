@@ -196,4 +196,29 @@ th_test_pipenv_auto_activate_bash() {
         "th_auto_activate_bash_cd"
 }
 
+th_auto_activate_zsh_cd() {
+    cd "$@" || return 1
+
+    # shellcheck disable=SC2154
+    for cmd in $chpwd_functions; do
+        "$cmd"
+    done
+
+    # shellcheck disable=SC2154
+    for cmd in $precmd_functions; do
+        "$cmd"
+    done
+}
+
+th_test_pipenv_auto_activate_zsh() {
+    if [ -z "$ZSH_VERSION" ]; then
+        return
+    fi
+
+    th_test_pipenv_auto_activate \
+        "pipenv_auto_activate_enable" \
+        "pipenv_auto_activate_disable" \
+        "th_auto_activate_zsh_cd"
+}
+
 # }}}

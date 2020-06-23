@@ -311,6 +311,17 @@ _pipenv_auto_activate_enable_bash() {
     return 0
 }
 
+# Enable auto activate Pipenv environment on prompt for Zsh.
+#
+# Returns:
+#   0 on success, 1 on error.
+_pipenv_auto_activate_enable_zsh() {
+    autoload -Uz add-zsh-hook || return 1
+    _pipenv_auto_activate_disable_zsh || return 1
+    add-zsh-hook precmd pipenv_auto_activate_check_proj || return 1
+    return 0
+}
+
 # Enable auto activate Pipenv environment.
 #
 # Returns:
@@ -318,6 +329,8 @@ _pipenv_auto_activate_enable_bash() {
 pipenv_auto_activate_enable() {
     if [ -n "$BASH_VERSION" ]; then
         _pipenv_auto_activate_enable_bash
+    elif [ -n "$ZSH_VERSION" ]; then
+        _pipenv_auto_activate_enable_zsh
     else
         _pipenv_auto_activate_enable_redefine_cd
     fi
@@ -348,6 +361,16 @@ _pipenv_auto_activate_disable_bash() {
     PROMPT_COMMAND="$(echo "$PROMPT_COMMAND" | sed -E 's/pipenv_auto_activate_check_proj;?//g')"
 }
 
+# Disable auto activate Pipenv environment on prompt for Zsh
+#
+# Returns:
+#   0 on success, 1 on error.
+_pipenv_auto_activate_disable_zsh() {
+    autoload -Uz add-zsh-hook || return 1
+    add-zsh-hook -D precmd pipenv_auto_activate_check_proj || return 1
+    return 0
+}
+
 # Disable auto activate Pipenv environment.
 #
 # Returns:
@@ -355,6 +378,8 @@ _pipenv_auto_activate_disable_bash() {
 pipenv_auto_activate_disable() {
     if [ -n "$BASH_VERSION" ]; then
         _pipenv_auto_activate_disable_bash
+    elif [ -n "$ZSH_VERSION" ]; then
+        _pipenv_auto_activate_disable_zsh
     else
         _pipenv_auto_activate_disable_redefine_cd
     fi

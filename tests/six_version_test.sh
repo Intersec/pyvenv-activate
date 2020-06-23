@@ -97,4 +97,9 @@ test_pipenv_auto_activate_bash() {
 }
 
 
+test_pipenv_auto_activate_zsh() {
+    th_test_pipenv_auto_activate_zsh
+}
+
+
 . "$TEST_DIR/shunit2/shunit2"
