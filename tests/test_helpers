@@ -143,6 +143,10 @@ tearDown() {
 # }}}
 # {{{ Auto activate functions
 
+th_print_skipped_test() {
+    echo ">>> Skipped"
+}
+
 th_auto_activate_check_proj_enable() {
     _TH_AUTO_ACTIVATE_CHECK_PROJ_ACTIVE=1
 }
@@ -187,6 +191,7 @@ th_auto_activate_bash_cd() {
 
 th_test_pipenv_auto_activate_bash() {
     if [ -z "$BASH_VERSION" ]; then
+        th_print_skipped_test
         return
     fi
 
@@ -212,6 +217,7 @@ th_auto_activate_zsh_cd() {
 
 th_test_pipenv_auto_activate_zsh() {
     if [ -z "$ZSH_VERSION" ]; then
+        th_print_skipped_test
         return
     fi
 
