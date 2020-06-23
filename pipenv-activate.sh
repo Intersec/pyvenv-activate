@@ -8,10 +8,15 @@
 
 # Use `echo -e` instead of `echo` when available to interpret backslash
 # characters.
-_PIPENV_ACTIVATE_ECHO_ESC="echo -e"
 # shellcheck disable=SC2039
-if [ "$(echo -e 'test')" = '-e test' ]; then
-    _PIPENV_ACTIVATE_ECHO_ESC="echo"
+if [ "$(echo -e 'test')" = 'test' ]; then
+    _pipenv_activate_echo_esc() {
+        echo -e "$@"
+    }
+else
+    _pipenv_activate_echo_esc() {
+        echo "$@"
+    }
 fi
 
 # Python code to load the dotenv file using the dotenv module.
@@ -113,7 +118,7 @@ EOF
         pa_dotenv_vars_="${pa_dotenv_vars_} ${pa_do_env_key_}"
 
         # Unescape the value with `echo -e`.
-        pa_dotenv_value_="$($_PIPENV_ACTIVATE_ECHO_ESC "$pa_dotenv_value_")"
+        pa_dotenv_value_="$(_pipenv_activate_echo_esc "$pa_dotenv_value_")"
 
         # Export the value in the current environment.
         export "$pa_do_env_key_=$pa_dotenv_value_"
@@ -184,8 +189,12 @@ pipenv_activate() {
 # Unset the variables set by the dotenv file.
 _pipenv_deactivate_unload_dotenv() {
     if [ -n "$_PIPENV_ACTIVATE_DOTENV_VARS" ]; then
+        pa_saved_ifs_="$IFS"
+        IFS=" "
         #shellcheck disable=SC2046
         unset $(echo "$_PIPENV_ACTIVATE_DOTENV_VARS" | xargs)
+        IFS="$pa_saved_ifs_"
+        unset pa_saved_ifs_
     fi
 }
 
