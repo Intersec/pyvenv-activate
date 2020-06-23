@@ -141,3 +141,59 @@ tearDown() {
 }
 
 # }}}
+# {{{ Auto activate functions
+
+th_auto_activate_check_proj_enable() {
+    _TH_AUTO_ACTIVATE_CHECK_PROJ_ACTIVE=1
+}
+
+th_auto_activate_check_proj_disable() {
+    unset _TH_AUTO_ACTIVATE_CHECK_PROJ_ACTIVE
+}
+
+th_auto_activate_check_proj_cd() {
+    cd "$@" || return 1
+
+    if [ -n "$_TH_AUTO_ACTIVATE_CHECK_PROJ_ACTIVE" ]; then
+        pipenv_auto_activate_check_proj
+    fi
+}
+
+th_test_pipenv_auto_activate_check_proj() {
+    th_test_pipenv_auto_activate \
+        "th_auto_activate_check_proj_enable" \
+        "th_auto_activate_check_proj_disable" \
+        "th_auto_activate_check_proj_cd"
+}
+
+th_test_pipenv_auto_activate_redefine_cd() {
+    th_test_pipenv_auto_activate \
+        "_pipenv_auto_activate_enable_redefine_cd" \
+        "_pipenv_auto_activate_disable_redefine_cd" \
+        "cd"
+}
+
+th_auto_activate_bash_cd() {
+    cd "$@" || return 1
+
+    _saved_ifs="$IFS"
+    IFS=";"
+    for cmd in $PROMPT_COMMAND; do
+        "$cmd"
+    done
+    IFS="$_saved_ifs"
+    unset _saved_ifs
+}
+
+th_test_pipenv_auto_activate_bash() {
+    if [ -z "$BASH_VERSION" ]; then
+        return
+    fi
+
+    th_test_pipenv_auto_activate \
+        "pipenv_auto_activate_enable" \
+        "pipenv_auto_activate_disable" \
+        "th_auto_activate_bash_cd"
+}
+
+# }}}

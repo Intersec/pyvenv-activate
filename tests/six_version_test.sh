@@ -58,45 +58,42 @@ test_pipenv_activate() {
 }
 
 
-test_pipenv_auto_activate_check_proj() {
+th_test_pipenv_auto_activate() {
+    enable_cmd="$1"
+    disable_cmd="$2"
+    cd_cmd="$3"
+
+    $enable_cmd || fail "enable auto activate"
+
     # Change directory to env 1 and check six version.
-    cd -- "$TEST_ENVS_TMPDIR/1" || fail "cd to env 1"
-    pipenv_auto_activate_check_proj \
-        || fail "pipenv_auto_activate_check_proj in env 1"
+    $cd_cmd -- "$TEST_ENVS_TMPDIR/1" || fail "cd to env 1"
     assertEquals "six version in env 1" "$ENV_1_SIX_VERSION" \
         "$(get_six_version)"
 
     # Change directory to env 2 and check six version.
-    cd -- "$TEST_ENVS_TMPDIR/2" || fail "cd to env 2"
-    pipenv_auto_activate_check_proj \
-        || fail "pipenv_auto_activate_check_proj in env 2"
+    $cd_cmd -- "$TEST_ENVS_TMPDIR/2" || fail "cd to env 2"
     assertEquals "six version in env 2" "$ENV_2_SIX_VERSION" \
         "$(get_six_version)"
 
     # Go back to envs tmpdir
-    cd -- "$TEST_ENVS_TMPDIR" || fail "cd to envs tmpdir"
-    pipenv_auto_activate_check_proj \
-        || fail "pipenv_auto_activate_check_proj in envs tmpdir"
+    $cd_cmd -- "$TEST_ENVS_TMPDIR" || fail "cd to envs tmpdir"
+
+    $disable_cmd || fail "disable auto activate"
+}
+
+
+test_pipenv_auto_activate_check_proj() {
+    th_test_pipenv_auto_activate_check_proj
 }
 
 
 test_pipenv_auto_activate_redefine_cd() {
-    _pipenv_auto_activate_enable_redefine_cd || fail "enable redefine cd"
+    th_test_pipenv_auto_activate_redefine_cd
+}
 
-    # Change directory to env 1 and check six version.
-    cd -- "$TEST_ENVS_TMPDIR/1" || fail "cd to env 1"
-    assertEquals "six version in env 1" "$ENV_1_SIX_VERSION" \
-        "$(get_six_version)"
 
-    # Change directory to env 2 and check six version.
-    cd -- "$TEST_ENVS_TMPDIR/2" || fail "cd to env 2"
-    assertEquals "six version in env 2" "$ENV_2_SIX_VERSION" \
-        "$(get_six_version)"
-
-    # Go back to envs tmpdir
-    cd -- "$TEST_ENVS_TMPDIR" || fail "cd to envs tmpdir"
-
-    _pipenv_auto_activate_disable_redefine_cd || fail "disable redefine cd"
+test_pipenv_auto_activate_bash() {
+    th_test_pipenv_auto_activate_bash
 }
 
 
