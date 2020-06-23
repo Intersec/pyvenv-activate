@@ -205,7 +205,7 @@ pipenv_deactivate() {
 
 # }}}
 # {{{ Pipenv auto activate
-# {{{ Change directory command
+# {{{ Check project
 
 # Find project directory containing a Pipenv file.
 #
@@ -292,12 +292,26 @@ _pipenv_auto_activate_enable_redefine_cd() {
     return 0
 }
 
+# Enable auto activate Pipenv environment on prompt for Bash.
+#
+# Returns:
+#   0 on success, 1 on error.
+_pipenv_auto_activate_enable_bash() {
+    _pipenv_auto_activate_disable_bash || return 1
+    PROMPT_COMMAND="pipenv_auto_activate_check_proj${PROMPT_COMMAND:+;$PROMPT_COMMAND}"
+    return 0
+}
+
 # Enable auto activate Pipenv environment.
 #
 # Returns:
 #   0 on success, 1 on error.
 pipenv_auto_activate_enable() {
-    _pipenv_auto_activate_enable_redefine_cd
+    if [ -n "$BASH_VERSION" ]; then
+        _pipenv_auto_activate_enable_bash
+    else
+        _pipenv_auto_activate_enable_redefine_cd
+    fi
 }
 
 # }}}
@@ -317,12 +331,24 @@ _pipenv_auto_activate_disable_redefine_cd() {
     return 0
 }
 
+# Disable auto activate Pipenv environment on prompt for Bash.
+#
+# Returns:
+#   0 on success, 1 on error.
+_pipenv_auto_activate_disable_bash() {
+    PROMPT_COMMAND="$(echo "$PROMPT_COMMAND" | sed -E 's/pipenv_auto_activate_check_proj;?//g')"
+}
+
 # Disable auto activate Pipenv environment.
 #
 # Returns:
 #   0 on success, 1 on error.
 pipenv_auto_activate_disable() {
-    _pipenv_auto_activate_disable_redefine_cd
+    if [ -n "$BASH_VERSION" ]; then
+        _pipenv_auto_activate_disable_bash
+    else
+        _pipenv_auto_activate_disable_redefine_cd
+    fi
 }
 
 # }}}
