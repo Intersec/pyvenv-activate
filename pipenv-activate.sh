@@ -6,19 +6,6 @@
 
 # {{{ Pipenv activate
 
-# Use `echo -e` instead of `echo` when available to interpret backslash
-# characters.
-# shellcheck disable=SC2039
-if [ "$(echo -e 'test')" = 'test' ]; then
-    _pipenv_activate_echo_esc() {
-        echo -e "$@"
-    }
-else
-    _pipenv_activate_echo_esc() {
-        echo "$@"
-    }
-fi
-
 # Python code to load the dotenv file using the dotenv module.
 #
 # This script will load the variables from the dotenv file skipping the
@@ -117,8 +104,8 @@ EOF
         # Add the key to the list of variables.
         pa_dotenv_vars_="${pa_dotenv_vars_} ${pa_do_env_key_}"
 
-        # Unescape the value with `echo -e`.
-        pa_dotenv_value_="$(_pipenv_activate_echo_esc "$pa_dotenv_value_")"
+        # Unescape the value with `printf %b`.
+        pa_dotenv_value_="$(printf %b\\n "$pa_dotenv_value_")"
 
         # Export the value in the current environment.
         export "$pa_do_env_key_=$pa_dotenv_value_"
