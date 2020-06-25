@@ -6,16 +6,35 @@
 
 # {{{ Pipenv activate
 
-# Python code to load the dotenv file using the dotenv module.
+# Get the Python interpreter used by Pipenv from its shebang.
 #
-# This script will load the variables from the dotenv file skipping the
+# This is the python interpreter used by Pipenv, not the interpreter used in
+# in the virtual envionment.
+#
+# Outputs:
+#   The path to Python interperter used by Pipenv.
+_pipenv_activate_get_pipenv_python() {
+    head -n 1 "$(command -v pipenv)" | sed 's/#!//'
+}
+
+# Get dotenv variables by loading dotenv file with Python dotenv module.
+#
+# Run python code to load the dotenv file using the dotenv module with Pipenv
+# python interpreter.
+#
+# The script will load the variables from the dotenv file skipping the
 # variables already set in the environment the same way as Pipenv.
 #
 # The variables are output in the format `$key\t$value` with $value having its
 # non-ascii and whitespace characters escaped. This way, we are sure $value
 # does not contain an unescaped `\t` (\x09) character.
 #
-_PIPENV_ACTIVATE_PYTHON_DOTENV_VARS_GETTER=$(cat <<EOF
+# Args:
+#   dotenv_file: string: the path to the dotenv file.
+# Outputs:
+#   The dotenv variables.
+_pipenv_activate_get_dotenv_variables() {
+    "$(_pipenv_activate_get_pipenv_python)" - "$1" <<EOF
 from sys import argv as sys_argv
 from os import environ as os_environ
 from json import dumps as json_dumps
@@ -34,30 +53,6 @@ for k, v in values.items():
         v = json_dumps(v)[1:-1]
         print('{}\t{}'.format(k, v))
 EOF
-)
-
-# Get the Python interpreter used by Pipenv from its shebang.
-#
-# This is the python interpreter used by Pipenv, not the interpreter used in
-# in the virtual envionment.
-#
-# Outputs:
-#   The path to Python interperter used by Pipenv.
-_pipenv_activate_get_pipenv_python() {
-    head -n 1 "$(command -v pipenv)" | sed 's/#!//'
-}
-
-# Get dotenv variables by loading dotenv file with Python dotenv module.
-#
-# Run _PIPENV_ACTIVATE_PYTHON_DOTENV_LOADER with Pipenv python interpreter.
-#
-# Args:
-#   dotenv_file: string: the path to the dotenv file.
-# Outputs:
-#   The dotenv variables.
-_pipenv_activate_get_dotenv_variables() {
-    $(_pipenv_activate_get_pipenv_python) \
-        -c "$_PIPENV_ACTIVATE_PYTHON_DOTENV_VARS_GETTER" "$1"
 }
 
 # Load variables from dotenv file the same way as Pipenv.
