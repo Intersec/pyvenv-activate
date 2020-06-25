@@ -1,6 +1,7 @@
 # Pipenv activate
 
-[![Build Status](https://travis-ci.org/nicopauss/pipenv-activate.svg?branch=master)](https://travis-ci.org/nicopauss/pipenv-activate)
+[![Build Status](https://img.shields.io/travis/nicopauss/pipenv-activate)](https://travis-ci.org/nicopauss/pipenv-activate)
+[![License](https://img.shields.io/github/license/nicopauss/pipenv-activate)](https://github.com/nicopauss/pipenv-activate/blob/master/LICENSE)
 
 TODO
 
