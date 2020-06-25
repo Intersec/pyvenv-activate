@@ -189,14 +189,26 @@ th_auto_activate_bash_cd() {
     unset _saved_ifs
 }
 
-th_test_pipenv_auto_activate_bash() {
+th_test_pipenv_auto_activate_bash_prompt() {
     if [ -z "$BASH_VERSION" ]; then
         th_print_skipped_test
         return
     fi
 
     th_test_pipenv_auto_activate \
-        "pipenv_auto_activate_enable" \
+        "pipenv_auto_activate_enable prompt" \
+        "pipenv_auto_activate_disable" \
+        "th_auto_activate_bash_cd"
+}
+
+th_test_pipenv_auto_activate_bash_chpwd() {
+    if [ -z "$BASH_VERSION" ]; then
+        th_print_skipped_test
+        return
+    fi
+
+    th_test_pipenv_auto_activate \
+        "pipenv_auto_activate_enable chpwd" \
         "pipenv_auto_activate_disable" \
         "th_auto_activate_bash_cd"
 }
@@ -215,14 +227,26 @@ th_auto_activate_zsh_cd() {
     done
 }
 
-th_test_pipenv_auto_activate_zsh() {
+th_test_pipenv_auto_activate_zsh_prompt() {
     if [ -z "$ZSH_VERSION" ]; then
         th_print_skipped_test
         return
     fi
 
     th_test_pipenv_auto_activate \
-        "pipenv_auto_activate_enable" \
+        "pipenv_auto_activate_enable prompt" \
+        "pipenv_auto_activate_disable" \
+        "th_auto_activate_zsh_cd"
+}
+
+th_test_pipenv_auto_activate_zsh_chpwd() {
+    if [ -z "$ZSH_VERSION" ]; then
+        th_print_skipped_test
+        return
+    fi
+
+    th_test_pipenv_auto_activate \
+        "pipenv_auto_activate_enable chpwd" \
         "pipenv_auto_activate_disable" \
         "th_auto_activate_zsh_cd"
 }

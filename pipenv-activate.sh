@@ -278,9 +278,17 @@ pipenv_auto_activate_check_proj() {
 # We need to redefine the command cd with our own function, and we can only
 # check the project directory when changing the current directory.
 #
+# Args:
+#   mode: string: The auto activate mode to use.
+#
 # Returns:
 #   0 on success, 1 on error.
 _pipenv_auto_activate_enable_redefine_cd() {
+    if [ "$1" = "prompt" ]; then
+        echo "prompt mode is not supported when redefining cd" >&2
+        return 1
+    fi
+
     if [ "$(type cd)" != "cd is a shell builtin" ]; then
         echo "command cd is already redefined" >&2
         return 1
@@ -301,39 +309,98 @@ _pipenv_auto_activate_enable_redefine_cd() {
     return 0
 }
 
-# Enable auto activate Pipenv environment on prompt for Bash.
+# Enable auto activate Pipenv environment on change directory.
+_pipenv_auto_activate_bash_chpwd_cmd() {
+    if [ "$_PIPENV_AUTO_ACTIVATE_OLD_PWD" != "$PWD" ]; then
+        pipenv_auto_activate_check_proj
+        _PIPENV_AUTO_ACTIVATE_OLD_PWD="$PWD"
+    fi
+}
+
+# Enable auto activate Pipenv environment for Bash.
+#
+# Args:
+#   mode: string: The auto activate mode to use.
 #
 # Returns:
 #   0 on success, 1 on error.
 _pipenv_auto_activate_enable_bash() {
+    if [ "$1" = "chpwd" ]; then
+        pa_cmd_="_pipenv_auto_activate_bash_chpwd_cmd"
+    else
+        pa_cmd_="pipenv_auto_activate_check_proj"
+    fi
+
     _pipenv_auto_activate_disable_bash || return 1
-    PROMPT_COMMAND="pipenv_auto_activate_check_proj${PROMPT_COMMAND:+;$PROMPT_COMMAND}"
+    PROMPT_COMMAND="${pa_cmd_}${PROMPT_COMMAND:+;$PROMPT_COMMAND}"
+
+    unset pa_cmd_
     return 0
 }
 
-# Enable auto activate Pipenv environment on prompt for Zsh.
+# Enable auto activate Pipenv environment for Zsh.
+#
+# Args:
+#   mode: string: The auto activate mode to use.
 #
 # Returns:
 #   0 on success, 1 on error.
 _pipenv_auto_activate_enable_zsh() {
+    if [ "$1" = "chpwd" ]; then
+        pa_hook_="chpwd"
+    else
+        pa_hook_="precmd"
+    fi
+
     autoload -Uz add-zsh-hook || return 1
     _pipenv_auto_activate_disable_zsh || return 1
-    add-zsh-hook precmd pipenv_auto_activate_check_proj || return 1
+    add-zsh-hook "$pa_hook_" pipenv_auto_activate_check_proj || return 1
+
+    unset pa_hook_
     return 0
 }
 
 # Enable auto activate Pipenv environment.
 #
+# Args:
+#   [mode]: string: The auto activate mode to use.
+#                   It can be one of the following:
+#                   - prompt: The Pipenv environment is checked and activated
+#                   on prompt.
+#                   Since pipenv_auto_activate_check_proj() is a no-op most of
+#                   the time and is fast enough in that case, this is the best
+#                   option when available.
+#                   This mode is only supported for Bash and Zsh.
+#                   - chpwd: The Pipenv environment is checked and activated
+#                   when changing directory.
+#                   - default: The default mode, use prompt mode when
+#                   available, cd otherwise.
+#
 # Returns:
 #   0 on success, 1 on error.
 pipenv_auto_activate_enable() {
+    pa_mode_="${1:-default}"
+
+    case "$pa_mode_" in
+        prompt|chpwd|default)
+            ;;
+        *)
+            echo "unknow mode $pa_mode_" >&2
+            return 1
+            ;;
+    esac
+
+
     if [ -n "$BASH_VERSION" ]; then
-        _pipenv_auto_activate_enable_bash
+        _pipenv_auto_activate_enable_bash "$pa_mode_" || return 1
     elif [ -n "$ZSH_VERSION" ]; then
-        _pipenv_auto_activate_enable_zsh
+        _pipenv_auto_activate_enable_zsh "$pa_mode_" || return 1
     else
-        _pipenv_auto_activate_enable_redefine_cd
+        _pipenv_auto_activate_enable_redefine_cd "$pa_mode_" || return 1
     fi
+
+    unset pa_mode_
+    return 0
 }
 
 # }}}
@@ -358,7 +425,9 @@ _pipenv_auto_activate_disable_redefine_cd() {
 # Returns:
 #   0 on success, 1 on error.
 _pipenv_auto_activate_disable_bash() {
-    PROMPT_COMMAND="$(echo "$PROMPT_COMMAND" | sed -E 's/pipenv_auto_activate_check_proj;?//g')"
+    PROMPT_COMMAND="$(echo "$PROMPT_COMMAND" | \
+        sed -E -e 's/pipenv_auto_activate_check_proj;?//g' \
+               -e 's/_pipenv_auto_activate_bash_chpwd_cmd;?//g')"
 }
 
 # Disable auto activate Pipenv environment on prompt for Zsh
@@ -368,6 +437,7 @@ _pipenv_auto_activate_disable_bash() {
 _pipenv_auto_activate_disable_zsh() {
     autoload -Uz add-zsh-hook || return 1
     add-zsh-hook -D precmd pipenv_auto_activate_check_proj || return 1
+    add-zsh-hook -D chpwd pipenv_auto_activate_check_proj || return 1
     return 0
 }
 

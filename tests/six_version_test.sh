@@ -92,13 +92,23 @@ test_pipenv_auto_activate_redefine_cd() {
 }
 
 
-test_pipenv_auto_activate_bash() {
-    th_test_pipenv_auto_activate_bash
+test_pipenv_auto_activate_bash_prompt() {
+    th_test_pipenv_auto_activate_bash_prompt
 }
 
 
-test_pipenv_auto_activate_zsh() {
-    th_test_pipenv_auto_activate_zsh
+test_pipenv_auto_activate_bash_chpwd() {
+    th_test_pipenv_auto_activate_bash_chpwd
+}
+
+
+test_pipenv_auto_activate_zsh_prompt() {
+    th_test_pipenv_auto_activate_zsh_prompt
+}
+
+
+test_pipenv_auto_activate_zsh_chpwd() {
+    th_test_pipenv_auto_activate_zsh_chpwd
 }
 
 
