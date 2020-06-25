@@ -82,33 +82,10 @@ th_test_pipenv_auto_activate() {
 }
 
 
-test_pipenv_auto_activate_check_proj() {
-    th_test_pipenv_auto_activate_check_proj
-}
-
-
-test_pipenv_auto_activate_redefine_cd() {
-    th_test_pipenv_auto_activate_redefine_cd
-}
-
-
-test_pipenv_auto_activate_bash_prompt() {
-    th_test_pipenv_auto_activate_bash_prompt
-}
-
-
-test_pipenv_auto_activate_bash_chpwd() {
-    th_test_pipenv_auto_activate_bash_chpwd
-}
-
-
-test_pipenv_auto_activate_zsh_prompt() {
-    th_test_pipenv_auto_activate_zsh_prompt
-}
-
-
-test_pipenv_auto_activate_zsh_chpwd() {
-    th_test_pipenv_auto_activate_zsh_chpwd
+suite() {
+    suite_addTest 'test_pipenv_run'
+    suite_addTest 'test_pipenv_activate'
+    th_pipenv_auto_activate_suite
 }
 
 
