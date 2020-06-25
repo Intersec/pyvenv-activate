@@ -223,7 +223,7 @@ pipenv_deactivate() {
 # Outputs:
 #   The Pipenv project root directory.
 _pipenv_auto_activate_find_proj_dir() {
-    pa_current_dir_="$(pwd)"
+    pa_current_dir_="$PWD"
 
     # Default PIPENV_MAX_DEPTH is 3 according to Pipenv documentation.
     # shellcheck disable=SC2034
@@ -232,7 +232,7 @@ _pipenv_auto_activate_find_proj_dir() {
             echo "$pa_current_dir_"
             break
         fi
-        pa_current_dir_="$(dirname "$pa_current_dir_")"
+        pa_current_dir_="$(dirname -- "$pa_current_dir_")"
     done
 
     unset pa_current_dir_ pa_i_
