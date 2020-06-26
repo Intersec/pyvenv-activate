@@ -13,11 +13,10 @@ TEST_DIR="$(dirname -- "$TEST_SCRIPT")"
 ENV_1_SIX_VERSION="1.15.0"
 ENV_2_SIX_VERSION="None"
 
-
 get_six_version() {
     cmd_prefix="${1:-}"
 
-    $cmd_prefix python <<EOF
+    $cmd_prefix python3 <<EOF
 try:
     import six
 except ImportError:

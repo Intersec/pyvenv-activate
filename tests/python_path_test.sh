@@ -15,7 +15,7 @@ TEST_DIR="$(dirname -- "$TEST_SCRIPT")"
 get_python_path() {
     cmd_prefix="${1:-}"
 
-    $cmd_prefix which python
+    $cmd_prefix which python3
 }
 
 oneTimeSetUp() {
