@@ -28,24 +28,24 @@ test_pipenv_run() {
     # Check test environment is ok.
     assertEquals "check host env" "$HOST_PYTHON_PATH" "$(get_python_path)"
 
-    # Change directory in env 1 and check python path with `pipenv run`.
-    cd -- "$TEST_ENVS_TMPDIR/1" || fail "cd to env 1"
-    assertEquals "python path equals to host in env 1 without pipenv run"\
+    # Change directory to env A and check python path with `pipenv run`.
+    cd -- "$TEST_ENVS_TMPDIR/A" || fail "cd to env A"
+    assertEquals "python path equals to host in env A without pipenv run"\
         "$HOST_PYTHON_PATH" "$(get_python_path)"
 
     env_1_python_path="$(get_python_path 'pipenv run')"
-    assertNotEquals "python path not equals to host in env 1 with pipenv run"\
+    assertNotEquals "python path not equals to host in env A with pipenv run"\
         "$HOST_PYTHON_PATH" "$env_1_python_path"
 
-    # Change directory in env 2 and check python path with `pipenv run`.
-    cd -- "$TEST_ENVS_TMPDIR/2" || fail "cd to env 2"
-    assertEquals "python path equals to host in env 2 without pipenv run"\
+    # Change directory to env B and check python path with `pipenv run`.
+    cd -- "$TEST_ENVS_TMPDIR/B" || fail "cd to env B"
+    assertEquals "python path equals to host in env B without pipenv run"\
         "$HOST_PYTHON_PATH" "$(get_python_path)"
 
     env_2_python_path="$(get_python_path 'pipenv run')"
-    assertNotEquals "python path not equals to host in env 2 with pipenv run"\
+    assertNotEquals "python path not equals to host in env B with pipenv run"\
         "$HOST_PYTHON_PATH" "$env_2_python_path"
-    assertNotEquals "python path not equals to env 1 in env 2 with pipenv run"\
+    assertNotEquals "python path not equals to env A in env B with pipenv run"\
         "$env_1_python_path" "$env_2_python_path"
 }
 
@@ -60,48 +60,48 @@ test_pipenv_activate() {
     assertEquals "python path to host after pipenv_activate without valid virtualenv"\
         "$HOST_PYTHON_PATH" "$(get_python_path)"
 
-    # Change directory in env 1 and check python path with `pipenv_activate`.
-    cd -- "$TEST_ENVS_TMPDIR/1" || fail "cd to env 1"
-    assertEquals "python path equals to host in env 1 without pipenv_activate"\
+    # Change directory to env A and check python path with `pipenv_activate`.
+    cd -- "$TEST_ENVS_TMPDIR/A" || fail "cd to env A"
+    assertEquals "python path equals to host in env A without pipenv_activate"\
         "$HOST_PYTHON_PATH" "$(get_python_path)"
 
-    pipenv_activate || fail "pipenv_activate in env 1"
+    pipenv_activate || fail "pipenv_activate in env A"
     env_1_python_path="$(get_python_path)"
-    assertNotEquals "python path not equals to host in env 1 with pipenv_activate"\
+    assertNotEquals "python path not equals to host in env A with pipenv_activate"\
         "$HOST_PYTHON_PATH" "$env_1_python_path"
 
-    # Change directory in env 2
-    cd -- "$TEST_ENVS_TMPDIR/2" || fail "cd to env 2"
+    # Change directory to env B
+    cd -- "$TEST_ENVS_TMPDIR/B" || fail "cd to env B"
 
-    # Since we have not yet deactivate the pipenv environment of env 1, we
-    # should still get the python path of env 1.
-    assertEquals "python path equals to env 1 in env 2 without python_activate"\
+    # Since we have not yet deactivate the pipenv environment of env A, we
+    # should still get the python path of env A.
+    assertEquals "python path equals to env A in env B without python_activate"\
         "$env_1_python_path" "$(get_python_path)"
 
-    # Cannot activate env 2 while env 1 is still active.
+    # Cannot activate env B while env A is still active.
     pipenv_activate 2>/dev/null \
-        && fail "pipenv_activate in env 2 with env 1 still active should fail"
-    assertEquals "python path to env 1 after invalid pipenv_activate in env 2"\
+        && fail "pipenv_activate in env B with env A still active should fail"
+    assertEquals "python path to env A after invalid pipenv_activate in env B"\
         "$env_1_python_path" "$(get_python_path)"
 
-    # Deactivate the pipenv environment of env 1, we get the host python path.
-    pipenv_deactivate || fail "deactivate env 1"
-    assertEquals "python path equals to host after pipenv_deactivate of env 1"\
+    # Deactivate the pipenv environment of env A, we get the host python path.
+    pipenv_deactivate || fail "deactivate env A"
+    assertEquals "python path equals to host after pipenv_deactivate of env A"\
         "$HOST_PYTHON_PATH" "$(get_python_path)"
 
-    # Use `pipenv_activate` in env 2.
-    pipenv_activate || fail "pipenv_activate in env 2"
+    # Use `pipenv_activate` in env B.
+    pipenv_activate || fail "pipenv_activate in env B"
 
-    # Check python path in env 2 with `pipenv_activate`.
+    # Check python path in env B with `pipenv_activate`.
     env_2_python_path="$(get_python_path)"
-    assertNotEquals "python path not equals to host in env 2 with pipenv_activate"\
+    assertNotEquals "python path not equals to host in env B with pipenv_activate"\
         "$HOST_PYTHON_PATH" "$env_2_python_path"
-    assertNotEquals "python path not equals to env 1 in env 2 with pipenv_activate"\
+    assertNotEquals "python path not equals to env A in env B with pipenv_activate"\
         "$env_1_python_path" "$env_2_python_path"
 
     # `pipenv run` should be a no operations when the pipenv environment is
     # already loaded with `pipenv_activate`.
-    assertEquals "pipenv run no op in env 2 with pipenv_activate"\
+    assertEquals "pipenv run no op in env B with pipenv_activate"\
         "$env_2_python_path" "$(get_python_path 'pipenv run')"
 
     # Using `pipenv_activate` twice in th same environment has no effects and
@@ -110,8 +110,8 @@ test_pipenv_activate() {
     assertEquals "pipenv_activate twice no op "\
         "$env_2_python_path" "$(get_python_path)"
 
-    # Deactivate env 2
-    pipenv_deactivate || fail "pipenv_deactivate env 2"
+    # Deactivate env B
+    pipenv_deactivate || fail "pipenv_deactivate env B"
 
     # Using `pipenv_deactivate` twice has no effect and should not fail.
     pipenv_deactivate || fail "pipenv_deactivate no op"
@@ -137,10 +137,10 @@ th_test_pipenv_auto_activate() {
     assertEquals "python path equals to host in envs tmpdir after cd"\
         "$HOST_PYTHON_PATH" "$(get_python_path)"
 
-    # Change directory in env 1 and check python path.
-    $cd_cmd -- "$TEST_ENVS_TMPDIR/1" || fail "cd to env 1"
+    # Change directory to env A and check python path.
+    $cd_cmd -- "$TEST_ENVS_TMPDIR/A" || fail "cd to env A"
     env_1_python_path="$(get_python_path)"
-    assertNotEquals "python path not equals to host in env 1 after cd"\
+    assertNotEquals "python path not equals to host in env A after cd"\
         "$HOST_PYTHON_PATH" "$env_1_python_path"
 
     # Change directory to envs tmpdir and check python path.
@@ -148,17 +148,17 @@ th_test_pipenv_auto_activate() {
     assertEquals "python path equals to host in envs tmpdir after cd"\
         "$HOST_PYTHON_PATH" "$(get_python_path)"
 
-    # Change directory in env 2 and check python path.
-    $cd_cmd -- "$TEST_ENVS_TMPDIR/2" || fail "cd to env 2"
+    # Change directory to env B and check python path.
+    $cd_cmd -- "$TEST_ENVS_TMPDIR/B" || fail "cd to env B"
     env_2_python_path="$(get_python_path)"
-    assertNotEquals "python path not equals to host in env 2 after cd"\
+    assertNotEquals "python path not equals to host in env B after cd"\
         "$HOST_PYTHON_PATH" "$env_2_python_path"
-    assertNotEquals "python path not equals to env 1 in env 2 after cd"\
+    assertNotEquals "python path not equals to env A in env B after cd"\
         "$env_1_python_path" "$env_2_python_path"
 
-    # Get back to env 1 directly and check python path.
-    $cd_cmd -- "$TEST_ENVS_TMPDIR/1" || fail "cd to env 1"
-    assertEquals "python path equals to env 1 back from env 2 after cd"\
+    # Get back to env A directly and check python path.
+    $cd_cmd -- "$TEST_ENVS_TMPDIR/A" || fail "cd to env A"
+    assertEquals "python path equals to env A back from env B after cd"\
         "$(get_python_path)" "$env_1_python_path"
 
     # Change directory to envs tmpdir and check python path.
@@ -168,9 +168,9 @@ th_test_pipenv_auto_activate() {
 
     $disable_cmd || fail "disable auto activate"
 
-    # Change directory in env 1 and check python path.
-    $cd_cmd -- "$TEST_ENVS_TMPDIR/1" || fail "cd to env 1"
-    assertEquals "python path equals to host in env 1 after cd"\
+    # Change directory in env A and check python path.
+    $cd_cmd -- "$TEST_ENVS_TMPDIR/A" || fail "cd to env A"
+    assertEquals "python path equals to host in env A after cd"\
         "$HOST_PYTHON_PATH" "$(get_python_path)"
 }
 

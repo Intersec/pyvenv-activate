@@ -29,32 +29,32 @@ EOF
 
 
 test_pipenv_run() {
-    # Change directory to env 1 and check six version.
-    cd -- "$TEST_ENVS_TMPDIR/1" || fail "cd to env 1"
-    assertEquals "six version in env 1" "$ENV_1_SIX_VERSION" \
+    # Change directory to env A and check six version.
+    cd -- "$TEST_ENVS_TMPDIR/A" || fail "cd to env A"
+    assertEquals "six version in env A" "$ENV_1_SIX_VERSION" \
         "$(get_six_version 'pipenv run')"
 
-    # Change directory to env 2 and check six version.
-    cd -- "$TEST_ENVS_TMPDIR/2" || fail "cd to env 2"
-    assertEquals "six version in env 2" "$ENV_2_SIX_VERSION" \
+    # Change directory to env B and check six version.
+    cd -- "$TEST_ENVS_TMPDIR/B" || fail "cd to env B"
+    assertEquals "six version in env B" "$ENV_2_SIX_VERSION" \
         "$(get_six_version 'pipenv run')"
 }
 
 
 test_pipenv_activate() {
-    # Change directory to env 1 and check six version.
-    cd -- "$TEST_ENVS_TMPDIR/1" || fail "cd to env 1"
-    pipenv_activate || fail "pipenv_activate in env 1"
-    assertEquals "six version in env 1" "$ENV_1_SIX_VERSION" \
+    # Change directory to env A and check six version.
+    cd -- "$TEST_ENVS_TMPDIR/A" || fail "cd to env A"
+    pipenv_activate || fail "pipenv_activate in env A"
+    assertEquals "six version in env A" "$ENV_1_SIX_VERSION" \
         "$(get_six_version)"
-    pipenv_deactivate || fail "deactivate env 1"
+    pipenv_deactivate || fail "deactivate env A"
 
-    # Change directory to env 2 and check six version.
-    cd -- "$TEST_ENVS_TMPDIR/2" || fail "cd to env 2"
-    pipenv_activate || fail "pipenv_activate in env 2"
-    assertEquals "six version in env 2" "$ENV_2_SIX_VERSION" \
+    # Change directory to env B and check six version.
+    cd -- "$TEST_ENVS_TMPDIR/B" || fail "cd to env B"
+    pipenv_activate || fail "pipenv_activate in env B"
+    assertEquals "six version in env B" "$ENV_2_SIX_VERSION" \
         "$(get_six_version)"
-    pipenv_deactivate || fail "deactivate env 2"
+    pipenv_deactivate || fail "deactivate env B"
 }
 
 
@@ -65,14 +65,14 @@ th_test_pipenv_auto_activate() {
 
     $enable_cmd || fail "enable auto activate"
 
-    # Change directory to env 1 and check six version.
-    $cd_cmd -- "$TEST_ENVS_TMPDIR/1" || fail "cd to env 1"
-    assertEquals "six version in env 1" "$ENV_1_SIX_VERSION" \
+    # Change directory to env A and check six version.
+    $cd_cmd -- "$TEST_ENVS_TMPDIR/A" || fail "cd to env A"
+    assertEquals "six version in env A" "$ENV_1_SIX_VERSION" \
         "$(get_six_version)"
 
-    # Change directory to env 2 and check six version.
-    $cd_cmd -- "$TEST_ENVS_TMPDIR/2" || fail "cd to env 2"
-    assertEquals "six version in env 2" "$ENV_2_SIX_VERSION" \
+    # Change directory to env B and check six version.
+    $cd_cmd -- "$TEST_ENVS_TMPDIR/B" || fail "cd to env B"
+    assertEquals "six version in env B" "$ENV_2_SIX_VERSION" \
         "$(get_six_version)"
 
     # Go back to envs tmpdir
