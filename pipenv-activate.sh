@@ -205,19 +205,29 @@ pipenv_deactivate() {
 # Outputs:
 #   The Pipenv project root directory.
 _pipenv_auto_activate_find_proj_dir() {
-    pa_current_dir_="$PWD"
-
     # Default PIPENV_MAX_DEPTH is 3 according to Pipenv documentation.
-    # shellcheck disable=SC2034
-    for pa_i_ in seq 1 "${PIPENV_MAX_DEPTH:-3}"; do
+    pa_max_depth_="${PIPENV_MAX_DEPTH:-3}"
+    pa_current_dir_="$PWD"
+    pa_i_=0
+
+    while true; do
+        # Always do it at least once regardless of max depth.
         if [ -r "$pa_current_dir_/Pipfile" ]; then
             echo "$pa_current_dir_"
             break
         fi
+
+        pa_i_=$((pa_i_ + 1))
+
+        # Use ! to break if $pa_max_depth_ is not a number.
+        if ! [ "$pa_i_" -lt "$pa_max_depth_" ]; then
+            break
+        fi
+
         pa_current_dir_="$(dirname -- "$pa_current_dir_")"
     done
 
-    unset pa_current_dir_ pa_i_
+    unset pa_max_depth_ pa_current_dir_ pa_i_
 }
 
 # Function to be run on prompt or when the current directory is changed to
