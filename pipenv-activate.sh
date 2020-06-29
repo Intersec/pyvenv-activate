@@ -22,22 +22,22 @@ _pipenv_activate_get_pipenv_python() {
 # Run python code to load the dotenv file using the dotenv module with Pipenv
 # python interpreter.
 #
-# The script will load the variables from the dotenv file skipping the
+# The script will load the variables from the dotenv file overwriting the
 # variables already set in the environment the same way as Pipenv.
 #
-# The variables are output in the format `$key\t$value` with $value having its
-# non-ascii and whitespace characters escaped. This way, we are sure $value
-# does not contain an unescaped `\t` (\x09) character.
+# The variables are output in the format `$key base64($value)`. Since the
+# value is encoded in base64, we are sure there are no special characters that
+# can cause issues when parsing it back with the shell.
 #
 # Args:
+#   python_exec: string: the path to the python executable to use.
 #   dotenv_file: string: the path to the dotenv file.
 # Outputs:
 #   The dotenv variables.
 _pipenv_activate_get_dotenv_variables() {
-    "$(_pipenv_activate_get_pipenv_python)" - "$1" <<EOF
+    "$1" - "$2" <<EOF
 from sys import argv as sys_argv
-from os import environ as os_environ
-from json import dumps as json_dumps
+from base64 import b64encode
 
 try:
     # Importing dotenv from pipenv is slow.
@@ -49,9 +49,56 @@ except ImportError:
 dotenv_file = sys_argv[1]
 values = dotenv_values(dotenv_file)
 for k, v in values.items():
-    if k not in os_environ:
-        v = json_dumps(v)[1:-1]
-        print('{}\t{}'.format(k, v))
+    if not isinstance(v, bytes):
+        v = v.encode('utf-8')
+    v = b64encode(v).decode('utf-8')
+    print("{} {}".format(k, v))
+EOF
+}
+
+# Encode dotenv value in base64 using python.
+#
+# `base64` command is not POSIX, it is part of GNU coreutils.
+# So, the most portable way to do it here is to use python as we are sure that
+# its is available for Pipenv.
+#
+# Args:
+#   python_exec: string: the path to the python executable to use.
+#   value: string: the value to encode.
+# Outputs:
+#   The encoded value in base64.
+_pipenv_activate_dotenv_encode_value() {
+    "$1" - "$2" <<EOF
+from sys import argv as sys_argv
+from base64 import b64encode
+
+v = sys_argv[1]
+if not isinstance(v, bytes):
+    v = v.encode('utf-8')
+print(b64encode(v).decode('utf-8'))
+EOF
+}
+
+# Decode dotenv value as base64 using python.
+#
+# `base64` command is not POSIX, it is part of GNU coreutils.
+# So, the most portable way to do it here is to use python as we are sure that
+# its is available for Pipenv.
+#
+# Args:
+#   python_exec: string: the path to the python executable to use.
+#   value: string: the base64 value to decode.
+# Outputs:
+#   The decoded value.
+_pipenv_activate_dotenv_decode_value() {
+    "$1" - "$2" <<EOF
+from sys import argv as sys_argv
+from base64 import b64decode
+
+v = sys_argv[1]
+if not isinstance(v, bytes):
+    v = v.encode('utf-8')
+print(b64decode(v).decode('utf-8'))
 EOF
 }
 
@@ -79,11 +126,16 @@ _pipenv_activate_load_dotenv() {
         return
     fi
 
+    pa_python_exec_="$(_pipenv_activate_get_pipenv_python)"
+
     # Will contains the list of variables set by the dotenv file.
     pa_dotenv_vars_=""
 
+    # Will contains the list of existing environment variables
+    pa_dotenv_existing_vals_=""
+
     # Read variables line by lines.
-    # Since the values are escaped, we are sure that each line corresponds to
+    # Since the values are encoded, we are sure that each line corresponds to
     # one and only one variable.
     while IFS= read -r pa_dotenv_line_; do
         if [ -z "$pa_dotenv_line_" ]; then
@@ -91,29 +143,68 @@ _pipenv_activate_load_dotenv() {
             continue
         fi
 
-        # Split up the key and the value with `\t` as separator.
-        IFS="	" read -r pa_do_env_key_ pa_dotenv_value_ <<EOF
+        # Split up the key and the value.
+        IFS=" " read -r pa_dotenv_key_ pa_dotenv_value_ <<EOF
 $pa_dotenv_line_
 EOF
 
-        # Add the key to the list of variables.
-        pa_dotenv_vars_="${pa_dotenv_vars_} ${pa_do_env_key_}"
+        # Key already exists in shell environment.
+        # We will need to store it in order to restore it on unload.
+        if eval "[ -n \"\${$pa_dotenv_key_+x}\" ]"; then
+            # Get the existing value and encode it.
+            pa_existing_val_="$(eval "printf '%s' \"\$$pa_dotenv_key_\"")"
+            pa_existing_val_="$(_pipenv_activate_dotenv_encode_value \
+                "$pa_python_exec_" "$pa_existing_val_")"
 
-        # Unescape the value with `printf %b`.
-        pa_dotenv_value_="$(printf %b\\n "$pa_dotenv_value_")"
+            # Get type of exising variable, if it is exported or not.
+            # shellcheck disable=SC2039
+            if export -p | grep -q "$pa_dotenv_key_="; then
+                pa_existing_kind_='e'
+            else
+                pa_existing_kind_='v'
+            fi
+
+            # Create the line to be inserted in the variable.
+            pa_existing_line_="$(printf '%s %s %s' "$pa_existing_kind_" \
+                "$pa_dotenv_key_" "$pa_existing_val_")"
+
+            if [ -z "$pa_dotenv_existing_vals_" ]; then
+                pa_dotenv_existing_vals_="$pa_existing_line_"
+            else
+                pa_dotenv_existing_vals_="$pa_dotenv_existing_vals_
+$pa_existing_line_"
+            fi
+
+            unset pa_existing_val_ pa_existing_kind_ pa_existing_line_
+        fi
+
+        # Add the key to the list of variables.
+        if [ -z "$pa_dotenv_vars_" ]; then
+            pa_dotenv_vars_="${pa_dotenv_key_}"
+        else
+            pa_dotenv_vars_="${pa_dotenv_vars_}
+${pa_dotenv_key_}"
+        fi
+
+        # Decode the value.
+        pa_dotenv_value_="$(_pipenv_activate_dotenv_decode_value \
+            "$pa_python_exec_" "$pa_dotenv_value_")"
 
         # Export the value in the current environment.
-        export "$pa_do_env_key_=$pa_dotenv_value_"
-
+        export "$pa_dotenv_key_=$pa_dotenv_value_"
     done <<EOF
-$(_pipenv_activate_get_dotenv_variables "$pa_dotenv_file_")
+$(_pipenv_activate_get_dotenv_variables "$pa_python_exec_" "$pa_dotenv_file_")
 EOF
 
-    # Export the list of variables.
-    export _PIPENV_ACTIVATE_DOTENV_VARS="$pa_dotenv_vars_"
+    # Set the list of variables to global variable.
+    _PIPENV_ACTIVATE_DOTENV_VARS="$pa_dotenv_vars_"
 
-    unset pa_dotenv_file_ pa_dotenv_vars_ pa_dotenv_line_ pa_dotenv_key_ \
-        pa_dotenv_value_
+    # Set the list of existing values to global variable.
+    _PIPENV_ACTIVATE_DOTENV_EXISTING_VALS="$pa_dotenv_existing_vals_"
+
+    unset pa_dotenv_file_ pa_python_exec_ pa_dotenv_vars_ pa_dotenv_line_ \
+        pa_dotenv_key_ pa_dotenv_value_ pa_current_val_ \
+        pa_dotenv_existing_vals_
 }
 
 # Activate pipenv environment in the current shell.
@@ -168,15 +259,46 @@ pipenv_activate() {
 # }}}
 # {{{ Pipenv deactivate
 
-# Unset the variables set by the dotenv file.
+# Unload the dotenv file previous loaded by pipenv_activate.
 _pipenv_deactivate_unload_dotenv() {
+    # Unset the variables set by the dotenv file.
     if [ -n "$_PIPENV_ACTIVATE_DOTENV_VARS" ]; then
-        pa_saved_ifs_="$IFS"
-        IFS=" "
-        #shellcheck disable=SC2046
-        unset $(echo "$_PIPENV_ACTIVATE_DOTENV_VARS" | xargs)
-        IFS="$pa_saved_ifs_"
-        unset pa_saved_ifs_
+        while IFS= read -r pa_var_; do
+            unset "$pa_var_"
+        done <<EOF
+$_PIPENV_ACTIVATE_DOTENV_VARS
+EOF
+        unset pa_var_ _PIPENV_ACTIVATE_DOTENV_VARS
+    fi
+
+    # Restore the existing variables.
+    if [ -n "$_PIPENV_ACTIVATE_DOTENV_EXISTING_VALS" ]; then
+        pa_python_exec_="$(_pipenv_activate_get_pipenv_python)"
+
+        # Read $_PIPENV_ACTIVATE_DOTENV_EXISTING_VALS line by line.
+        while IFS= read -r pa_existing_line_; do
+            # Split line by  '.
+            IFS=" " read -r pa_existing_kind_ pa_existing_key_ pa_existing_val_ <<EOF
+$pa_existing_line_
+EOF
+
+            # Decode the value.
+            pa_existing_val_="$(_pipenv_activate_dotenv_decode_value \
+                "$pa_python_exec_" "$pa_existing_val_")"
+
+            # Export the variable or set it as a simple shell variable
+            # depending of the kind.
+            if [ "$pa_existing_kind_" = 'e' ]; then
+                export "$pa_existing_key_=$pa_existing_val_"
+            else
+                eval "$pa_existing_key_=\"\$pa_existing_val_\""
+            fi
+        done <<EOF
+$_PIPENV_ACTIVATE_DOTENV_EXISTING_VALS
+EOF
+
+        unset pa_existing_line_ pa_existing_kind_ pa_existing_key_ \
+            _PIPENV_ACTIVATE_DOTENV_EXISTING_VALS
     fi
 }
 

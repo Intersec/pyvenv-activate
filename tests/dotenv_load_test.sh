@@ -14,15 +14,33 @@ ENV_C_VAR_A="foo"
 ENV_C_VAR_B="bar"
 ENV_C_VAR_C=""
 ENV_C_VAR_D=""
-ENV_C_VAR_E="toto
-titi"
+ENV_C_VAR_E="toto\\'\"
+titi	"
+ENV_C_VAR_F="plop\\'\"
+plip"
+ENV_C_VAR_G="plup\\'\"
+plap"
+
+TEST_VAR_F="foo\\'\"
+bar"
+TEST_VAR_G="toto\\'\"
+tata"
 
 
 get_env_var() {
     env_var="$1"
     cmd_prefix="${2:-}"
 
-    $cmd_prefix sh -c "echo \"\$$env_var\""
+    $cmd_prefix sh -c "cat <<EOF
+\$$env_var
+EOF"
+}
+
+
+setUp() {
+    th_setUp || return 1
+    VAR_F="$TEST_VAR_F"
+    export VAR_G="$TEST_VAR_G"
 }
 
 
@@ -34,6 +52,10 @@ test_pipenv_run() {
     assertEquals "VAR C in env C" "$ENV_C_VAR_C" "$(get_env_var "VAR_C" 'pipenv run')"
     assertEquals "VAR D in env C" "$ENV_C_VAR_D" "$(get_env_var "VAR_D" 'pipenv run')"
     assertEquals "VAR E in env C" "$ENV_C_VAR_E" "$(get_env_var "VAR_E" 'pipenv run')"
+    assertEquals "VAR F in env C" "$ENV_C_VAR_F" "$(get_env_var "VAR_F" 'pipenv run')"
+    assertEquals "VAR G in env C" "$ENV_C_VAR_G" "$(get_env_var "VAR_G" 'pipenv run')"
+    assertEquals "VAR F in shell env" "$TEST_VAR_F" "$VAR_F"
+    assertEquals "VAR G in shell env" "$TEST_VAR_G" "$VAR_G"
 
     # Change directory to env B and check dotenv variables.
     cd -- "$TEST_ENVS_TMPDIR/B" || fail "cd to env B"
@@ -42,6 +64,10 @@ test_pipenv_run() {
     assertNull "VAR C in env B" "$(get_env_var "VAR_C" 'pipenv run')"
     assertNull "VAR D in env B" "$(get_env_var "VAR_D" 'pipenv run')"
     assertNull "VAR E in env B" "$(get_env_var "VAR_E" 'pipenv run')"
+    assertNull "VAR F in env B" "$(get_env_var "VAR_F" 'pipenv run')"
+    assertEquals "VAR G in env B" "$TEST_VAR_G" "$(get_env_var "VAR_G" 'pipenv run')"
+    assertEquals "VAR F in shell env" "$TEST_VAR_F" "$VAR_F"
+    assertEquals "VAR G in shell env" "$TEST_VAR_G" "$VAR_G"
 }
 
 
@@ -54,6 +80,10 @@ test_pipenv_activate() {
     assertEquals "VAR C in env C" "$ENV_C_VAR_C" "$(get_env_var "VAR_C")"
     assertEquals "VAR D in env C" "$ENV_C_VAR_D" "$(get_env_var "VAR_D")"
     assertEquals "VAR E in env C" "$ENV_C_VAR_E" "$(get_env_var "VAR_E")"
+    assertEquals "VAR F in env C" "$ENV_C_VAR_F" "$(get_env_var "VAR_F")"
+    assertEquals "VAR G in env C" "$ENV_C_VAR_G" "$(get_env_var "VAR_G")"
+    assertEquals "VAR F in shell env" "$ENV_C_VAR_F" "$VAR_F"
+    assertEquals "VAR G in shell env" "$ENV_C_VAR_G" "$VAR_G"
     pipenv_deactivate || fail "deactivate env C"
 
     # Change directory to env B and check dotenv variables.
@@ -64,6 +94,10 @@ test_pipenv_activate() {
     assertNull "VAR C in env B" "$(get_env_var "VAR_C")"
     assertNull "VAR D in env B" "$(get_env_var "VAR_D")"
     assertNull "VAR E in env B" "$(get_env_var "VAR_E")"
+    assertNull "VAR F in env B" "$(get_env_var "VAR_F")"
+    assertEquals "VAR G in env B" "$TEST_VAR_G" "$(get_env_var "VAR_G")"
+    assertEquals "VAR F in shell env" "$TEST_VAR_F" "$VAR_F"
+    assertEquals "VAR G in shell env" "$TEST_VAR_G" "$VAR_G"
     pipenv_deactivate || fail "deactivate env B"
 }
 
@@ -82,6 +116,10 @@ th_test_pipenv_auto_activate() {
     assertEquals "VAR C in env C" "$ENV_C_VAR_C" "$(get_env_var "VAR_C")"
     assertEquals "VAR D in env C" "$ENV_C_VAR_D" "$(get_env_var "VAR_D")"
     assertEquals "VAR E in env C" "$ENV_C_VAR_E" "$(get_env_var "VAR_E")"
+    assertEquals "VAR F in env C" "$ENV_C_VAR_F" "$(get_env_var "VAR_F")"
+    assertEquals "VAR G in env C" "$ENV_C_VAR_G" "$(get_env_var "VAR_G")"
+    assertEquals "VAR F in shell env" "$ENV_C_VAR_F" "$VAR_F"
+    assertEquals "VAR G in shell env" "$ENV_C_VAR_G" "$VAR_G"
 
     # Change directory to env B and check dotenv variables.
     $cd_cmd -- "$TEST_ENVS_TMPDIR/B" || fail "cd to env B"
@@ -90,6 +128,10 @@ th_test_pipenv_auto_activate() {
     assertNull "VAR C in env B" "$(get_env_var "VAR_C")"
     assertNull "VAR D in env B" "$(get_env_var "VAR_D")"
     assertNull "VAR E in env B" "$(get_env_var "VAR_E")"
+    assertNull "VAR F in env B" "$(get_env_var "VAR_F")"
+    assertEquals "VAR G in env B" "$TEST_VAR_G" "$(get_env_var "VAR_G")"
+    assertEquals "VAR F in shell env" "$TEST_VAR_F" "$VAR_F"
+    assertEquals "VAR G in shell env" "$TEST_VAR_G" "$VAR_G"
 
     # Go back to envs tmpdir
     $cd_cmd -- "$TEST_ENVS_TMPDIR" || fail "cd to envs tmpdir"
