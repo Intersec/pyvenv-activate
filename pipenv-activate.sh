@@ -207,6 +207,38 @@ EOF
         pa_dotenv_existing_vals_
 }
 
+# Find project directory containing a Pipenv file.
+#
+# It respects the PIPENV_MAX_DEPTH environment variable.
+#
+# Outputs:
+#   The Pipenv project root directory.
+_pipenv_activate_find_proj_dir() {
+    # Default PIPENV_MAX_DEPTH is 3 according to Pipenv documentation.
+    pa_max_depth_="${PIPENV_MAX_DEPTH:-3}"
+    pa_current_dir_="$PWD"
+    pa_i_=0
+
+    while true; do
+        # Always do it at least once regardless of max depth.
+        if [ -r "$pa_current_dir_/Pipfile" ]; then
+            echo "$pa_current_dir_"
+            break
+        fi
+
+        pa_i_=$((pa_i_ + 1))
+
+        # Use ! to break if $pa_max_depth_ is not a number.
+        if ! [ "$pa_i_" -lt "$pa_max_depth_" ]; then
+            break
+        fi
+
+        pa_current_dir_="$(dirname -- "$pa_current_dir_")"
+    done
+
+    unset pa_max_depth_ pa_current_dir_ pa_i_
+}
+
 # Activate pipenv environment in the current shell.
 #
 # Unlike `pipenv shell`, this function will not create a sub-shell, but will
@@ -226,7 +258,12 @@ pipenv_activate() {
     pa_venv_dir_="$2"
 
     if [ -z "$pa_proj_dir_" ]; then
-        pa_proj_dir_="$(pwd -P)"
+        pa_proj_dir_="$(_pipenv_activate_find_proj_dir)"
+        if [ -z "$pa_proj_dir_" ]; then
+            # If the Pipenv project is not found, use $PWD to have a nice
+            # error later on.
+            pa_proj_dir_="$PWD"
+        fi
     fi
 
     if [ -z "$pa_venv_dir_" ]; then
@@ -320,45 +357,13 @@ pipenv_deactivate() {
 # {{{ Pipenv auto activate
 # {{{ Check project
 
-# Find project directory containing a Pipenv file.
-#
-# It respects the PIPENV_MAX_DEPTH environment variable.
-#
-# Outputs:
-#   The Pipenv project root directory.
-_pipenv_auto_activate_find_proj_dir() {
-    # Default PIPENV_MAX_DEPTH is 3 according to Pipenv documentation.
-    pa_max_depth_="${PIPENV_MAX_DEPTH:-3}"
-    pa_current_dir_="$PWD"
-    pa_i_=0
-
-    while true; do
-        # Always do it at least once regardless of max depth.
-        if [ -r "$pa_current_dir_/Pipfile" ]; then
-            echo "$pa_current_dir_"
-            break
-        fi
-
-        pa_i_=$((pa_i_ + 1))
-
-        # Use ! to break if $pa_max_depth_ is not a number.
-        if ! [ "$pa_i_" -lt "$pa_max_depth_" ]; then
-            break
-        fi
-
-        pa_current_dir_="$(dirname -- "$pa_current_dir_")"
-    done
-
-    unset pa_max_depth_ pa_current_dir_ pa_i_
-}
-
 # Function to be run on prompt or when the current directory is changed to
 # auto activate or deactivate the Pipenv environment.
 #
 # Returns:
 #   0 on success, 1 on error.
 pipenv_auto_activate_check_proj() {
-    pa_proj_dir_="$(_pipenv_auto_activate_find_proj_dir)"
+    pa_proj_dir_="$(_pipenv_activate_find_proj_dir)"
 
     if [ -n "$_PIPENV_AUTO_ACTIVATE_PROJ_DIR" ] \
     && [ "$pa_proj_dir_" != "$_PIPENV_AUTO_ACTIVATE_PROJ_DIR" ]; then

@@ -111,6 +111,14 @@ th_get_pipenv_venv() {
     pipenv --venv 2>/dev/null | cat
 }
 
+th_get_env_var() {
+    env_var="$1"
+    cmd_prefix="${2:-}"
+
+    $cmd_prefix sh -c "cat <<EOF
+\$$env_var
+EOF"
+}
 
 # }}}
 # {{{ Default setup/teardown functions
