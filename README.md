@@ -127,8 +127,56 @@ To deactivate the virtual environment, you will need to run
 `pipenv_deactivate`.
 
 Example:
-TODO
+```console
+pauss@home: envs$ . ~/dev/pipenv-activate/pipenv-activate.sh
+pauss@home: envs$ python --version
+Python 2.7.18rc1
+pauss@home: envs$ which python
+/usr/bin/python
+pauss@home: envs$ cd A
+pauss@home: envs/A$ python --version
+Python 2.7.18rc1
+pauss@home: envs/A$ which python
+/usr/bin/python
+pauss@home: envs/A$ pipenv_activate
+(A) pauss@home: envs/A$ python --version
+Python 3.8.2
+(A) pauss@home: envs/A$ which python
+/home/pauss/.local/share/virtualenvs/A-1baQ-YWx/bin/python
+(A) pauss@home: envs/A$ python -c 'import six; print(six.__version__)'
+1.15.0
+(A) pauss@home: envs/A$ cd ..
+(A) pauss@home: envs$ python --version
+Python 3.8.2
+(A) pauss@home: envs$ which python
+/home/pauss/.local/share/virtualenvs/A-1baQ-YWx/bin/python
+(A) pauss@home: envs$ pipenv_deactivate
+pauss@home: envs$ python --version
+Python 2.7.18rc1
+pauss@home: envs$ which python
+/usr/bin/python
+pauss@home: envs$ cd B
+pauss@home: envs/B$ pipenv_activate
+(B) pauss@home: envs/B$ python --version
+Python 3.8.2
+(B) pauss@home: envs/B$ which python
+/home/pauss/.local/share/virtualenvs/B-XFzaNdvP/bin/python
+(B) pauss@home: envs/B$ python -c 'import six; print(six.__version__)'
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+ModuleNotFoundError: No module named 'six'
+(B) pauss@home:(1) envs/B$ cd ../C
+(B) pauss@home: envs/C$ pipenv_deactivate
+pauss@home: envs/C$ echo $VAR_A
 
+pauss@home: envs/C$ pipenv_activate
+(C) pauss@home: envs/C$ echo $VAR_A
+foo
+(C) pauss@home: envs/C$ pipenv_deactivate
+pauss@home: envs/C$ echo $VAR_A
+
+pauss@home: envs/C$
+```
 
 ### Automatically
 
@@ -143,7 +191,45 @@ It is possible to disable this mechanism by calling
 `pipenv_auto_activate_disable`.
 
 Example:
-TODO
+```console
+pauss@home: envs$ . ~/dev/pipenv-activate/pipenv-activate.sh
+pauss@home: envs$ pipenv_auto_activate_enable
+pauss@home: envs$ python --version
+Python 2.7.18rc1
+pauss@home: envs$ which python
+/usr/bin/python
+pauss@home: envs$ cd A
+(A) pauss@home: envs/A$ python --version
+Python 3.8.2
+(A) pauss@home: envs/A$ which python
+/home/pauss/.local/share/virtualenvs/A-1baQ-YWx/bin/python
+(A) pauss@home: envs/A$ python -c 'import six; print(six.__version__)'
+1.15.0
+(A) pauss@home: envs/A$ cd ..
+pauss@home: envs$ python --version
+Python 2.7.18rc1
+pauss@home: envs$ which python
+/usr/bin/python
+pauss@home: envs$ cd B
+(B) pauss@home: envs/B$ python --version
+Python 3.8.2
+(B) pauss@home: envs/B$ which python
+/home/pauss/.local/share/virtualenvs/B-XFzaNdvP/bin/python
+(B) pauss@home: envs/B$ python -c 'import six; print(six.__version__)'
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+ModuleNotFoundError: No module named 'six'
+(B) pauss@home:(1) envs/B$ cd ..
+pauss@home: envs$ echo $VAR_A
+
+pauss@home: envs$ cd C
+(C) pauss@home: envs/C$ echo $VAR_A
+foo
+(C) pauss@home: envs/C$ cd ..
+pauss@home: envs$ echo $VAR_A
+
+pauss@home: envs$
+```
 
 #### Mode
 
