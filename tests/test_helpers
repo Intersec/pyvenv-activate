@@ -115,9 +115,7 @@ th_get_env_var() {
     env_var="$1"
     cmd_prefix="${2:-}"
 
-    $cmd_prefix sh -c "cat <<EOF
-\$$env_var
-EOF"
+    $cmd_prefix python3 -c "import os; print(os.environ.get('$env_var', ''))"
 }
 
 # }}}
