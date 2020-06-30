@@ -209,19 +209,24 @@ EOF
 
 # Find project directory containing a Pipenv file.
 #
-# It respects the PIPENV_MAX_DEPTH and PIPENV_NO_INHERIT environment
-# variables.
+# It respects the PIPENV_MAX_DEPTH, PIPENV_NO_INHERIT and PIPENV_PIPFILE
+# environment variables.
 #
 # Outputs:
 #   The Pipenv project root directory.
 _pipenv_activate_find_proj_dir() {
-    pa_current_dir_="$PWD"
+    if [ -z "$PIPENV_PIPFILE" ]; then
+        pa_current_dir_="$PWD"
 
-    if [ -n "$PIPENV_NO_INHERIT" ]; then
-        pa_max_depth_=0
+        if [ -z "$PIPENV_NO_INHERIT" ]; then
+            # Default PIPENV_MAX_DEPTH is 3 according to Pipenv documentation.
+            pa_max_depth_="${PIPENV_MAX_DEPTH:-3}"
+        else
+            pa_max_depth_=0
+        fi
     else
-        # Default PIPENV_MAX_DEPTH is 3 according to Pipenv documentation.
-        pa_max_depth_="${PIPENV_MAX_DEPTH:-3}"
+        pa_current_dir_="$(dirname -- "$PIPENV_PIPFILE")"
+        pa_max_depth_=0
     fi
 
     pa_i_=0

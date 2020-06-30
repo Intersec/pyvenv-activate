@@ -15,6 +15,7 @@ setUp() {
     th_setUp || return 1
     unset PIPENV_MAX_DEPTH
     unset PIPENV_NO_INHERIT
+    unset PIPENV_PIPFILE
 }
 
 
@@ -90,8 +91,20 @@ test_pipenv_run() {
 
     # Change directory to C/1
     cd -- "$TEST_ENVS_TMPDIR/C/1" || fail "cd to env C/1"
-    assertNotNull "pipenv venv not NULL in env C/1" "$(th_get_pipenv_venv)"
+    env_c_pipenv_venv="$(th_get_pipenv_venv)"
+    assertNotNull "pipenv venv not NULL in env C/1" "$env_c_pipenv_venv"
     assertEquals "VAR A in env C/1" "$ENV_C_VAR_A" "$(th_get_env_var "VAR_A" 'pipenv run')"
+
+    export PIPENV_PIPFILE="$TEST_ENVS_TMPDIR/C/Pipfile"
+
+    # Change directory to A/1/2 with PIPENV_PIPFILE to env C
+    cd -- "$TEST_ENVS_TMPDIR/A/1/2" || fail "cd to env A/1/2"
+    assertEquals "pipenv venv equals to env C with PIPENV_FILE to env C in A/1/2"\
+        "$env_c_pipenv_venv" "$(th_get_pipenv_venv)"
+    assertEquals "VAR A with PIPENV_FILE to env C in A/1/2" "$ENV_C_VAR_A"\
+        "$(th_get_env_var "VAR_A" 'pipenv run')"
+
+    unset PIPENV_PIPFILE
 }
 
 
@@ -183,10 +196,24 @@ test_pipenv_activate() {
     # Change directory to C/1
     cd -- "$TEST_ENVS_TMPDIR/C/1" || fail "cd to env C/1"
     pipenv_activate || fail "pipenv_activate in env C/1 with default max depth"
+    env_c_python_path="$(th_get_python_path)"
     assertNotEquals "python path not equals to host in env C/1"\
-        "$HOST_PYTHON_PATH" "$(th_get_python_path)"
+        "$HOST_PYTHON_PATH" "$env_c_python_path"
     assertEquals "VAR A in env C/1" "$ENV_C_VAR_A" "$(th_get_env_var "VAR_A")"
     pipenv_deactivate || fail "deactivate env C"
+
+    export PIPENV_PIPFILE="$TEST_ENVS_TMPDIR/C/Pipfile"
+
+    # Change directory to A/1/2 with PIPENV_PIPFILE to env C
+    cd -- "$TEST_ENVS_TMPDIR/A/1/2" || fail "cd to env A/1/2"
+    pipenv_activate || fail "pipenv_activate with PIPENV_PIPFILE to env C in A/1/2"
+    assertEquals "pipenv path equals to env C with PIPENV_FILE to env C in A/1/2"\
+        "$env_c_python_path" "$(th_get_python_path)"
+    assertEquals "VAR A with PIPENV_FILE to env C in A/1/2" "$ENV_C_VAR_A"\
+        "$(th_get_env_var "VAR_A")"
+    pipenv_deactivate || fail "deactivate env C"
+
+    unset PIPENV_PIPFILE
 }
 
 
@@ -269,9 +296,21 @@ th_test_pipenv_auto_activate() {
 
     # Change directory to C/1
     $cd_cmd -- "$TEST_ENVS_TMPDIR/C/1" || fail "cd to env C/1"
+    env_c_python_path="$(th_get_python_path)"
     assertNotEquals "python path not equals to host in env C/1"\
-        "$HOST_PYTHON_PATH" "$(th_get_python_path)"
+        "$HOST_PYTHON_PATH" "$env_c_python_path"
     assertEquals "VAR A in env C/1" "$ENV_C_VAR_A" "$(th_get_env_var "VAR_A")"
+
+    export PIPENV_PIPFILE="$TEST_ENVS_TMPDIR/C/Pipfile"
+
+    # Change directory to A/1/2 with PIPENV_PIPFILE to env C
+    $cd_cmd -- "$TEST_ENVS_TMPDIR/A/1/2" || fail "cd to env A/1/2"
+    assertEquals "pipenv path equals to env C with PIPENV_FILE to env C in A/1/2"\
+        "$env_c_python_path" "$(th_get_python_path)"
+    assertEquals "VAR A with PIPENV_FILE to env C in A/1/2" "$ENV_C_VAR_A"\
+        "$(th_get_env_var "VAR_A")"
+
+    unset PIPENV_PIPFILE
 
 
     # Go back to envs tmpdir
