@@ -14,6 +14,7 @@ ENV_C_VAR_A="foo"
 setUp() {
     th_setUp || return 1
     unset PIPENV_MAX_DEPTH
+    unset PIPENV_NO_INHERIT
 }
 
 
@@ -73,6 +74,19 @@ test_pipenv_run() {
         "$env_a_pipenv_venv" "$(th_get_pipenv_venv)"
 
     unset PIPENV_MAX_DEPTH
+    export PIPENV_NO_INHERIT=1
+
+    # Change directory to A/1
+    cd -- "$TEST_ENVS_TMPDIR/A/1" || fail "cd to env A/1"
+    assertNull "pipenv venv NULL in A/1 with no inherith"\
+        "$(th_get_pipenv_venv)"
+
+    # Change directory to A/
+    cd -- "$TEST_ENVS_TMPDIR/A/" || fail "cd to env A/"
+    assertEquals "pipenv venv equals to env A in A/ with no inherit"\
+        "$env_a_pipenv_venv" "$(th_get_pipenv_venv)"
+
+    unset PIPENV_NO_INHERIT
 
     # Change directory to C/1
     cd -- "$TEST_ENVS_TMPDIR/C/1" || fail "cd to env C/1"
@@ -144,12 +158,27 @@ test_pipenv_activate() {
 
     # Change directory to A/
     cd -- "$TEST_ENVS_TMPDIR/A/" || fail "cd to env A/"
-    pipenv_activate || fail "pipenv_activate in env A/1/2/3 with max depth 4"
-    assertEquals "python path equals to env A in A/1/2/3 with max depth 4"\
+    pipenv_activate || fail "pipenv_activate in env A with max depth 0"
+    assertEquals "python path equals to env A in A with max depth 0"\
         "$env_a_python_path" "$(th_get_python_path)"
     pipenv_deactivate || fail "deactivate env A"
 
     unset PIPENV_MAX_DEPTH
+    export PIPENV_NO_INHERIT=1
+
+    # Change directory to A/1
+    cd -- "$TEST_ENVS_TMPDIR/A/1" || fail "cd to env A/1"
+    pipenv_activate 2>/dev/null \
+        && fail "pipenv_activate in A/1 with no inherit should fail"
+
+    # Change directory to A/
+    cd -- "$TEST_ENVS_TMPDIR/A/" || fail "cd to env A/"
+    pipenv_activate || fail "pipenv_activate in env A with no inherit"
+    assertEquals "python path equals to env A in A with no inherit"\
+        "$env_a_python_path" "$(th_get_python_path)"
+    pipenv_deactivate || fail "deactivate env A"
+
+    unset PIPENV_NO_INHERIT
 
     # Change directory to C/1
     cd -- "$TEST_ENVS_TMPDIR/C/1" || fail "cd to env C/1"
@@ -224,6 +253,19 @@ th_test_pipenv_auto_activate() {
         "$env_a_python_path" "$(th_get_python_path)"
 
     unset PIPENV_MAX_DEPTH
+    export PIPENV_NO_INHERIT=1
+
+    # Change directory to A/1.
+    $cd_cmd -- "$TEST_ENVS_TMPDIR/A/1" || fail "cd to env A/1"
+    assertEquals "python path equals to host in A/1 with no inherit"\
+        "$HOST_PYTHON_PATH" "$(th_get_python_path)"
+
+    # Change directory to A/
+    $cd_cmd -- "$TEST_ENVS_TMPDIR/A/" || fail "cd to env A/"
+    assertEquals "python path equals to env A in A/ with no inherit"\
+        "$env_a_python_path" "$(th_get_python_path)"
+
+    unset PIPENV_NO_INHERIT
 
     # Change directory to C/1
     $cd_cmd -- "$TEST_ENVS_TMPDIR/C/1" || fail "cd to env C/1"
