@@ -17,6 +17,21 @@ be loaded when the virtual environment is activated.
 Of course, in order to work, [Pipenv](https://github.com/pypa/pipenv) must be
 installed first.
 
+
+## Table of Contents
+
+* [Features](#features)
+* [Installation](#installation)
+    * [Plugin installation](#plugin-installation)
+        * [Zsh](#zsh)
+        * [Bash](#bash)
+    * [Manual installation](#manual-installation)
+* [Usage](#usage)
+    * [Manually](#manually)
+    * [Automatically](#automatically)
+        * [Mode](#mode)
+* [Tests](#tests)
+
 ## Features
 
 * Load the virtual environment within the current shell.
