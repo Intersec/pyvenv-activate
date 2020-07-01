@@ -238,6 +238,10 @@ _pipenv_activate_find_proj_dir() {
             break
         fi
 
+        if [ -z "$pa_current_dir_" ] || [ "$pa_current_dir_" = "/" ]; then
+            break
+        fi
+
         pa_i_=$((pa_i_ + 1))
 
         # Use ! to break if $pa_max_depth_ is not a number.
@@ -245,7 +249,8 @@ _pipenv_activate_find_proj_dir() {
             break
         fi
 
-        pa_current_dir_="$(dirname -- "$pa_current_dir_")"
+        # Use command substitution to get the dirname.
+        pa_current_dir_="${pa_current_dir_%/*}"
     done
 
     unset pa_max_depth_ pa_current_dir_ pa_i_
