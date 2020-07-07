@@ -1,7 +1,7 @@
 # Pipenv activate
 
-[![Build Status](https://img.shields.io/travis/nicopauss/pipenv-activate)](https://travis-ci.org/nicopauss/pipenv-activate)
-[![License](https://img.shields.io/github/license/nicopauss/pipenv-activate)](https://github.com/nicopauss/pipenv-activate/blob/master/LICENSE)
+[![Build Status](https://img.shields.io/travis/Intersec/pipenv-activate)](https://travis-ci.org/Intersec/pipenv-activate)
+[![License](https://img.shields.io/github/license/Intersec/pipenv-activate)](https://github.com/Intersec/pipenv-activate/blob/master/LICENSE)
 
 `pipenv-activate.sh` is a POSIX shell script containing functions to manually
 or automatically activate and deactivate the virtual environment of
@@ -55,21 +55,21 @@ managers.
 [ZPlug](https://github.com/zplug/zplug)
 
 ```zsh
-zplug "nicopauss/pipenv-activate"
+zplug "Intersec/pipenv-activate"
 pipenv_auto_activate_enable # Optional, enable auto activate, see below
 ```
 
 [Antigen](https://github.com/zsh-users/antigen)
 
 ```zsh
-antigen bundle "nicopauss/pipenv-activate"
+antigen bundle "Intersec/pipenv-activate"
 pipenv_auto_activate_enable # Optional, enable auto activate, see below
 ```
 
 [Zgen](https://github.com/robbyrussell/oh-my-zsh)
 
 ```zsh
-zgen load "nicopauss/pipenv-activate"
+zgen load "Intersec/pipenv-activate"
 pipenv_auto_activate_enable # Optional, enable auto activate, see below
 ```
 
@@ -79,7 +79,7 @@ Copy this repository to ``$ZSH_CUSTOM/plugins``, where ``$ZSH_CUSTOM``
 is the directory with custom plugins of oh-my-zsh ([read more](https://github.com/robbyrussell/oh-my-zsh/wiki/Customization/)):
 
 ```
-git clone "https://github.com/nicopauss/pipenv-activate.git" "$ZSH_CUSTOM/plugins/pipenv-activate"
+git clone "https://github.com/Intersec/pipenv-activate.git" "$ZSH_CUSTOM/plugins/pipenv-activate"
 ```
 
 Then add `pipenv-activate` to the list of plugins in your ``.zshrc``. Make sure it is **before** the line `source $ZSH/oh-my-zsh.sh`:
@@ -100,7 +100,7 @@ Copy this repository to ``$OSH_CUSTOM/plugins``, where ``$OSH_CUSTOM``
 is the directory with custom plugins of oh-my-bash ([read more](https://github.com/ohmybash/oh-my-bash#custom-plugins-and-themes)):
 
 ```
-git clone "https://github.com/nicopauss/pipenv-activate.git" "$OSH_CUSTOM/plugins/pipenv-activate"
+git clone "https://github.com/Intersec/pipenv-activate.git" "$OSH_CUSTOM/plugins/pipenv-activate"
 ```
 
 Then add `pipenv-activate` to the list of plugins in your ``.bashrc``. Make sure it is **before** the line `source $OSH/oh-my-bash.sh`:
@@ -119,7 +119,7 @@ pipenv_auto_activate_enable # Optional, enable auto activate, see below
 First, clone the repository:
 ```
 mkdir -p "$HOME/.sh-plugins"
-git clone "https://github.com/nicopauss/pipenv-activate.git" "$HOME/.sh-plugins/pipenv-activate"
+git clone "https://github.com/Intersec/pipenv-activate.git" "$HOME/.sh-plugins/pipenv-activate"
 ```
 
 Next, you need to source `pipenv-activate.sh` in the interactive
