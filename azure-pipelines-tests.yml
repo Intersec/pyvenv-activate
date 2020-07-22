@@ -1,0 +1,43 @@
+jobs:
+  - ${{ each vmImage in parameters.vmImages }}:
+    - ${{ each pythonVersion in parameters.pythonVersions }}:
+      - job:
+
+        displayName: ${{ format('Tests {0}-py-{1}', vmImage, pythonVersion) }}
+
+        pool:
+          vmImage: ${{ vmImage }}
+
+        steps:
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: '${{ pythonVersion }}'
+            displayName: 'Use Python ${{ pythonVersion }}'
+
+          - bash: |
+              set -e
+              platform="$(python -c 'import sys; print(sys.platform)')"
+              case "$platform" in
+              linux*)
+                sudo apt update
+                sudo apt install ksh mksh zsh
+                ;;
+              darwin)
+                brew install ksh mksh zsh
+                ;;
+              *)
+                echo "$platform not supported" >&2
+                exit 1
+                ;;
+              esac
+            displayName: Install shells
+
+          - script: python -m pip install pipenv
+            displayName: Install pipenv
+
+          - checkout: self
+            submodules: true
+            displayName: Checkout submodules
+
+          - bash: ./tests/run_all_tests
+            displayName: Run tests
