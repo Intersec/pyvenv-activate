@@ -425,6 +425,7 @@ _pipenv_auto_activate_enable_redefine_cd() {
         return 1
     fi
 
+    # shellcheck disable=SC2039
     if [ "$(type cd)" != "cd is a shell builtin" ]; then
         echo "command cd is already redefined" >&2
         return 1
@@ -432,8 +433,10 @@ _pipenv_auto_activate_enable_redefine_cd() {
 
     # Some shells use `builtin` for calling the original cd command, others
     # use `command`.
+    # shellcheck disable=SC2039
     if (builtin echo "123" >/dev/null 2>&1); then
         cd() {
+            # shellcheck disable=SC2039
             builtin cd "$@" && pipenv_auto_activate_check_proj
         }
     else
@@ -547,6 +550,7 @@ pipenv_auto_activate_enable() {
 # Returns:
 #   0 on success, 1 on error.
 _pipenv_auto_activate_disable_redefine_cd() {
+    # shellcheck disable=SC2039
     if [ "$(type cd)" = "cd is a shell builtin" ]; then
         # Nothing to do.
         return 0
