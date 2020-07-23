@@ -1,6 +1,6 @@
 # Pipenv activate
 
-[![Build Status](https://img.shields.io/travis/Intersec/pipenv-activate)](https://travis-ci.org/Intersec/pipenv-activate)
+[![Build Status](https://dev.azure.com/nicolaspauss/nicolaspauss/_apis/build/status/Intersec.pipenv-activate?branchName=master)](https://dev.azure.com/nicolaspauss/nicolaspauss/_build/latest?definitionId=3&branchName=master)
 [![License](https://img.shields.io/github/license/Intersec/pipenv-activate)](https://github.com/Intersec/pipenv-activate/blob/master/LICENSE)
 
 `pipenv-activate.sh` is a POSIX shell script containing functions to manually
