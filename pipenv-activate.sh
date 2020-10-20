@@ -6,15 +6,58 @@
 
 # {{{ Pipenv activate
 
-# Get the Python interpreter used by Pipenv from its shebang.
+# Try to find pipenv module for the given python executable.
 #
-# This is the python interpreter used by Pipenv, not the interpreter used in
-# in the virtual envionment.
+# Args:
+#   python_exec: string: the path to the python executable to use.
+#
+# Returns:
+#   0 on if found, 1 if not found.
+_pipenv_activate_find_pipenv_module() {
+    "$1" - <<EOF
+import pkgutil
+import sys
+
+sys.exit(0 if pkgutil.find_loader('pipenv') else 1)
+EOF
+}
+
+# Get the current Python interpreter.
+#
+# Find the first python executable that have the pipenv module.
+# We privilege python3 over python2.
 #
 # Outputs:
-#   The path to Python interperter used by Pipenv.
-_pipenv_activate_get_pipenv_python() {
-    head -n 1 "$(command -v pipenv)" | sed 's/#!//'
+#   The path to Python executable.
+_pipenv_activate_get_python_exec() {
+    # Iterate through python3, python2 and python in tht order to find a valid
+    # python executable.
+    for pa_python_ver in python3 python2 python; do
+
+        # Iterate through each directories of $PATH.
+        while IFS= read -r pa_path; do
+            if [ -z "$pa_path" ]; then
+                # Skip empty line.
+                continue
+            fi
+
+            pa_python_exec="$pa_path/$pa_python_ver"
+
+            if [ -r "$pa_python_exec" ] && [ -x "$pa_python_exec" ] \
+            && _pipenv_activate_find_pipenv_module "$pa_python_exec"; then
+                # pipenv module has been found for the given python
+                # executable, return now.
+                echo "$pa_python_exec"
+                break 2
+            fi
+
+        done <<EOF
+$(printf '%s\n' "$PATH" | tr ':' '\n')
+EOF
+
+    done
+
+    unset pa_python_ver pa_path pa_python_exec
 }
 
 # Get dotenv variables by loading dotenv file with Python dotenv module.
@@ -126,7 +169,12 @@ _pipenv_activate_load_dotenv() {
         return 0
     fi
 
-    pa_python_exec_="$(_pipenv_activate_get_pipenv_python)"
+    # Get the python executable
+    pa_python_exec_="$(_pipenv_activate_get_python_exec)"
+    if [ -z "$pa_python_exec_" ]; then
+        echo "unable to find python executable" >&2
+        return 1
+    fi
 
     # Will contains the list of variables set by the dotenv file.
     pa_dotenv_vars_=""
@@ -330,7 +378,11 @@ EOF
 
     # Restore the existing variables.
     if [ -n "$_PIPENV_ACTIVATE_DOTENV_EXISTING_VALS" ]; then
-        pa_python_exec_="$(_pipenv_activate_get_pipenv_python)"
+        pa_python_exec_="$(_pipenv_activate_get_python_exec)"
+        if [ -z "$pa_python_exec_" ]; then
+            echo "unable to find python executable" >&2
+            return 1
+        fi
 
         # Read $_PIPENV_ACTIVATE_DOTENV_EXISTING_VALS line by line.
         while IFS= read -r pa_existing_line_; do
