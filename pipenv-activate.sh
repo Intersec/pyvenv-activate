@@ -111,7 +111,7 @@ EOF
 _pipenv_activate_load_dotenv() {
     if [ -n "$PIPENV_DONT_LOAD_ENV" ]; then
         # Do nothing if PIPENV_DONT_LOAD_ENV is set.
-        return
+        return 0
     fi
 
     if [ -n "$PIPENV_DOTENV_LOCATION" ]; then
@@ -123,7 +123,7 @@ _pipenv_activate_load_dotenv() {
     if ! [ -r "$pa_dotenv_file_" ]; then
         # Do nothing if file is not available.
         unset pa_dotenv_file_
-        return
+        return 0
     fi
 
     pa_python_exec_="$(_pipenv_activate_get_pipenv_python)"
@@ -154,7 +154,7 @@ EOF
             # Get the existing value and encode it.
             pa_existing_val_="$(eval "printf '%s' \"\$$pa_dotenv_key_\"")"
             pa_existing_val_="$(_pipenv_activate_dotenv_encode_value \
-                "$pa_python_exec_" "$pa_existing_val_")"
+                "$pa_python_exec_" "$pa_existing_val_")" || return 1
 
             # Get type of exising variable, if it is exported or not.
             # shellcheck disable=SC2039
@@ -188,10 +188,10 @@ ${pa_dotenv_key_}"
 
         # Decode the value.
         pa_dotenv_value_="$(_pipenv_activate_dotenv_decode_value \
-            "$pa_python_exec_" "$pa_dotenv_value_")"
+            "$pa_python_exec_" "$pa_dotenv_value_")" || return 1
 
         # Export the value in the current environment.
-        export "$pa_dotenv_key_=$pa_dotenv_value_"
+        export "$pa_dotenv_key_=$pa_dotenv_value_" || return 1
     done <<EOF
 $(_pipenv_activate_get_dotenv_variables "$pa_python_exec_" "$pa_dotenv_file_")
 EOF
@@ -314,6 +314,9 @@ pipenv_activate() {
 # {{{ Pipenv deactivate
 
 # Unload the dotenv file previous loaded by pipenv_activate.
+#
+# Returns:
+#   0 on success, 1 on error.
 _pipenv_deactivate_unload_dotenv() {
     # Unset the variables set by the dotenv file.
     if [ -n "$_PIPENV_ACTIVATE_DOTENV_VARS" ]; then
@@ -338,7 +341,7 @@ EOF
 
             # Decode the value.
             pa_existing_val_="$(_pipenv_activate_dotenv_decode_value \
-                "$pa_python_exec_" "$pa_existing_val_")"
+                "$pa_python_exec_" "$pa_existing_val_")" || return 1
 
             # Export the variable or set it as a simple shell variable
             # depending of the kind.
@@ -366,7 +369,7 @@ pipenv_deactivate() {
         unset -f deactivate
     fi
     unset PIPENV_ACTIVE
-    _pipenv_deactivate_unload_dotenv
+    _pipenv_deactivate_unload_dotenv || return 1
     return 0
 }
 
