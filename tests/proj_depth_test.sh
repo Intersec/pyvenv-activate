@@ -108,116 +108,116 @@ test_pipenv_run() {
 }
 
 
-test_pipenv_activate() {
+test_pyvenv_activate() {
     # Check test environment is ok.
     assertEquals "check host env" "$HOST_PYTHON_PATH" "$(th_get_python_path)"
 
     # Change directory to env A and check pipenv venv.
     cd -- "$TEST_ENVS_TMPDIR/A" || fail "cd to env A"
-    pipenv_activate || fail "pipenv_activate in env A"
+    pyvenv_activate || fail "pyvenv_activate in env A"
     env_a_python_path="$(th_get_python_path)"
     assertNotEquals "python path not equals to host in env A"\
         "$HOST_PYTHON_PATH" "$env_a_python_path"
-    pipenv_deactivate || fail "deactivate env A"
+    pyvenv_deactivate || fail "deactivate env A"
 
     export PIPENV_MAX_DEPTH=2
 
     # Change directory to A/1
     cd -- "$TEST_ENVS_TMPDIR/A/1" || fail "cd to env A/1"
-    pipenv_activate || fail "pipenv_activate in env A/1 with max depth 2"
+    pyvenv_activate || fail "pyvenv_activate in env A/1 with max depth 2"
     assertEquals "python path equals to env A in A/1 with max depth 2"\
         "$env_a_python_path" "$(th_get_python_path)"
-    pipenv_deactivate || fail "deactivate env A"
+    pyvenv_deactivate || fail "deactivate env A"
 
     # Change directory to A/1/2
     cd -- "$TEST_ENVS_TMPDIR/A/1/2" || fail "cd to env A/1/2"
-    pipenv_activate 2>/dev/null \
-        && fail "pipenv_activate in A/1 with max depth 2 should fail"
+    pyvenv_activate 2>/dev/null \
+        && fail "pyvenv_activate in A/1 with max depth 2 should fail"
 
     export PIPENV_MAX_DEPTH=4
 
     # Change directory to A/1
     cd -- "$TEST_ENVS_TMPDIR/A/1" || fail "cd to env A/1"
-    pipenv_activate || fail "pipenv_activate in env A/1 with max depth 4"
+    pyvenv_activate || fail "pyvenv_activate in env A/1 with max depth 4"
     assertEquals "python path equals to env A in A/1 with max depth 4"\
         "$env_a_python_path" "$(th_get_python_path)"
-    pipenv_deactivate || fail "deactivate env A"
+    pyvenv_deactivate || fail "deactivate env A"
 
     # Change directory to A/1/2
     cd -- "$TEST_ENVS_TMPDIR/A/1/2" || fail "cd to env A/1/2"
-    pipenv_activate || fail "pipenv_activate in env A/1/2 with max depth 4"
+    pyvenv_activate || fail "pyvenv_activate in env A/1/2 with max depth 4"
     assertEquals "python path equals to env A in A/1/2 with max depth 4"\
         "$env_a_python_path" "$(th_get_python_path)"
-    pipenv_deactivate || fail "deactivate env A"
+    pyvenv_deactivate || fail "deactivate env A"
 
     # Change directory to A/1/2/3
     cd -- "$TEST_ENVS_TMPDIR/A/1/2/3" || fail "cd to env A/1/2/3"
-    pipenv_activate || fail "pipenv_activate in env A/1/2/3 with max depth 4"
+    pyvenv_activate || fail "pyvenv_activate in env A/1/2/3 with max depth 4"
     assertEquals "python path equals to env A in A/1/2/3 with max depth 4"\
         "$env_a_python_path" "$(th_get_python_path)"
-    pipenv_deactivate || fail "deactivate env A"
+    pyvenv_deactivate || fail "deactivate env A"
 
     # Change directory to A/1/2/3/4
     cd -- "$TEST_ENVS_TMPDIR/A/1/2/3/4" || fail "cd to env A/1/2/3/4"
-    pipenv_activate 2>/dev/null \
-        && fail "pipenv_activate in A/1/2/3/4 with max depth 4 should fail"
+    pyvenv_activate 2>/dev/null \
+        && fail "pyvenv_activate in A/1/2/3/4 with max depth 4 should fail"
 
     export PIPENV_MAX_DEPTH=0
 
     # Change directory to A/1
     cd -- "$TEST_ENVS_TMPDIR/A/1" || fail "cd to env A/1"
-    pipenv_activate 2>/dev/null \
-        && fail "pipenv_activate in A/1 with max depth 0 should fail"
+    pyvenv_activate 2>/dev/null \
+        && fail "pyvenv_activate in A/1 with max depth 0 should fail"
 
     # Change directory to A/
     cd -- "$TEST_ENVS_TMPDIR/A/" || fail "cd to env A/"
-    pipenv_activate || fail "pipenv_activate in env A with max depth 0"
+    pyvenv_activate || fail "pyvenv_activate in env A with max depth 0"
     assertEquals "python path equals to env A in A with max depth 0"\
         "$env_a_python_path" "$(th_get_python_path)"
-    pipenv_deactivate || fail "deactivate env A"
+    pyvenv_deactivate || fail "deactivate env A"
 
     unset PIPENV_MAX_DEPTH
     export PIPENV_NO_INHERIT=1
 
     # Change directory to A/1
     cd -- "$TEST_ENVS_TMPDIR/A/1" || fail "cd to env A/1"
-    pipenv_activate 2>/dev/null \
-        && fail "pipenv_activate in A/1 with no inherit should fail"
+    pyvenv_activate 2>/dev/null \
+        && fail "pyvenv_activate in A/1 with no inherit should fail"
 
     # Change directory to A/
     cd -- "$TEST_ENVS_TMPDIR/A/" || fail "cd to env A/"
-    pipenv_activate || fail "pipenv_activate in env A with no inherit"
+    pyvenv_activate || fail "pyvenv_activate in env A with no inherit"
     assertEquals "python path equals to env A in A with no inherit"\
         "$env_a_python_path" "$(th_get_python_path)"
-    pipenv_deactivate || fail "deactivate env A"
+    pyvenv_deactivate || fail "deactivate env A"
 
     unset PIPENV_NO_INHERIT
 
     # Change directory to C/1
     cd -- "$TEST_ENVS_TMPDIR/C/1" || fail "cd to env C/1"
-    pipenv_activate || fail "pipenv_activate in env C/1 with default max depth"
+    pyvenv_activate || fail "pyvenv_activate in env C/1 with default max depth"
     env_c_python_path="$(th_get_python_path)"
     assertNotEquals "python path not equals to host in env C/1"\
         "$HOST_PYTHON_PATH" "$env_c_python_path"
     assertEquals "VAR A in env C/1" "$ENV_C_VAR_A" "$(th_get_env_var "VAR_A")"
-    pipenv_deactivate || fail "deactivate env C"
+    pyvenv_deactivate || fail "deactivate env C"
 
     export PIPENV_PIPFILE="$TEST_ENVS_TMPDIR/C/Pipfile"
 
     # Change directory to A/1/2 with PIPENV_PIPFILE to env C
     cd -- "$TEST_ENVS_TMPDIR/A/1/2" || fail "cd to env A/1/2"
-    pipenv_activate || fail "pipenv_activate with PIPENV_PIPFILE to env C in A/1/2"
+    pyvenv_activate || fail "pyvenv_activate with PIPENV_PIPFILE to env C in A/1/2"
     assertEquals "pipenv path equals to env C with PIPENV_FILE to env C in A/1/2"\
         "$env_c_python_path" "$(th_get_python_path)"
     assertEquals "VAR A with PIPENV_FILE to env C in A/1/2" "$ENV_C_VAR_A"\
         "$(th_get_env_var "VAR_A")"
-    pipenv_deactivate || fail "deactivate env C"
+    pyvenv_deactivate || fail "deactivate env C"
 
     unset PIPENV_PIPFILE
 }
 
 
-th_test_pipenv_auto_activate() {
+th_test_pyvenv_auto_activate() {
     enable_cmd="$1"
     disable_cmd="$2"
     cd_cmd="$3"
@@ -322,8 +322,8 @@ th_test_pipenv_auto_activate() {
 
 suite() {
     suite_addTest 'test_pipenv_run'
-    suite_addTest 'test_pipenv_activate'
-    th_pipenv_auto_activate_suite
+    suite_addTest 'test_pyvenv_activate'
+    th_pyvenv_auto_activate_suite
 }
 
 

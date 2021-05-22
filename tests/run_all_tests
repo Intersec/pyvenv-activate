@@ -1,7 +1,7 @@
 #!/bin/bash -eu
 
 # Create temporary data directory and setup it for all tests.
-TEST_ENVS_TMPDIR="$(mktemp -dqt pipenv_activate_envs_tmpdir.XXXXXX)" || exit 1
+TEST_ENVS_TMPDIR="$(mktemp -dqt pyvenv_activate_envs_tmpdir.XXXXXX)" || exit 1
 export TEST_ENVS_TMPDIR
 
 clean_up_test_envs_tmpdir() {

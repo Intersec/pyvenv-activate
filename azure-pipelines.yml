@@ -29,6 +29,6 @@ jobs:
             sudo apt install shellcheck
         displayName: Install ShellCheck
 
-      - script: shellcheck pipenv-activate.sh tests/run_all_tests tests/*_test.sh tests/test_helpers
+      - script: shellcheck pyvenv-activate.sh tests/run_all_tests tests/*_test.sh tests/test_helpers
         displayName: Run sources through ShellCheck
 

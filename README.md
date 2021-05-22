@@ -1,11 +1,13 @@
-# Pipenv activate
+# Pyvenv activate
 
 [![Build Status](https://dev.azure.com/nicolaspauss/nicolaspauss/_apis/build/status/Intersec.pipenv-activate?branchName=master)](https://dev.azure.com/nicolaspauss/nicolaspauss/_build/latest?definitionId=3&branchName=master)
 [![License](https://img.shields.io/github/license/Intersec/pipenv-activate)](https://github.com/Intersec/pipenv-activate/blob/master/LICENSE)
 
-`pipenv-activate.sh` is a POSIX shell script containing functions to manually
-or automatically activate and deactivate the virtual environment of
-[Pipenv](https://github.com/pypa/pipenv) projects within the current shell.
+`pyvenv-activate.sh` is a POSIX shell script containing functions to manually
+or automatically activate and deactivate the Python virtual environment of
+projects within the current shell.
+
+It currently supports [Pipenv](https://github.com/pypa/pipenv) projects.
 
 Unlike `pipenv shell`, the virtual environment is directly loaded in the
 current Shell environment and thus it will not start a new sub-shell when the
@@ -37,7 +39,7 @@ installed first.
 * Load the virtual environment within the current shell.
 * Simple functions for virtual environment activation/deactivation.
 * Automatic virtual environment activation/deactivation when entering or
-  exiting a Pipenv project.
+  exiting a Python virtual environment project.
 * Automatically loads `.env` file.
 * Respect Pipenv configuration environment variables (`PIPENV_MAX_DEPTH`,
   `PIPENV_DOTENV_LOCATION`, ...).
@@ -47,7 +49,7 @@ installed first.
 
 ### Plugin installation
 
-`pipenv-activate` can be used as a plugin for shells that support plugin
+`pyvenv-activate` can be used as a plugin for shells that support plugin
 managers.
 
 #### Zsh
@@ -55,22 +57,22 @@ managers.
 [ZPlug](https://github.com/zplug/zplug)
 
 ```zsh
-zplug "Intersec/pipenv-activate"
-pipenv_auto_activate_enable # Optional, enable auto activate, see below
+zplug "Intersec/pyvenv-activate"
+pyvenv_auto_activate_enable # Optional, enable auto activate, see below
 ```
 
 [Antigen](https://github.com/zsh-users/antigen)
 
 ```zsh
-antigen bundle "Intersec/pipenv-activate"
-pipenv_auto_activate_enable # Optional, enable auto activate, see below
+antigen bundle "Intersec/pyvenv-activate"
+pyvenv_auto_activate_enable # Optional, enable auto activate, see below
 ```
 
 [Zgen](https://github.com/robbyrussell/oh-my-zsh)
 
 ```zsh
-zgen load "Intersec/pipenv-activate"
-pipenv_auto_activate_enable # Optional, enable auto activate, see below
+zgen load "Intersec/pyvenv-activate"
+pyvenv_auto_activate_enable # Optional, enable auto activate, see below
 ```
 
 [oh-my-zsh](https://github.com/robbyrussell/oh-my-zsh)
@@ -79,17 +81,17 @@ Copy this repository to ``$ZSH_CUSTOM/plugins``, where ``$ZSH_CUSTOM``
 is the directory with custom plugins of oh-my-zsh ([read more](https://github.com/robbyrussell/oh-my-zsh/wiki/Customization/)):
 
 ```
-git clone "https://github.com/Intersec/pipenv-activate.git" "$ZSH_CUSTOM/plugins/pipenv-activate"
+git clone "https://github.com/Intersec/pipenv-activate.git" "$ZSH_CUSTOM/plugins/pyvenv-activate"
 ```
 
-Then add `pipenv-activate` to the list of plugins in your ``.zshrc``. Make sure it is **before** the line `source $ZSH/oh-my-zsh.sh`:
+Then add `pyvenv-activate` to the list of plugins in your ``.zshrc``. Make sure it is **before** the line `source $ZSH/oh-my-zsh.sh`:
 ```zsh
-plugins=(... pipenv-activate)
+plugins=(... pyvenv-activate)
 ```
 
 To enable the automatic activation, add this line **after** the line `source $ZSH/oh-my-zsh.sh`:
 ```zsh
-pipenv_auto_activate_enable # Optional, enable auto activate, see below
+pyvenv_auto_activate_enable # Optional, enable auto activate, see below
 ```
 
 #### Bash
@@ -100,50 +102,50 @@ Copy this repository to ``$OSH_CUSTOM/plugins``, where ``$OSH_CUSTOM``
 is the directory with custom plugins of oh-my-bash ([read more](https://github.com/ohmybash/oh-my-bash#custom-plugins-and-themes)):
 
 ```
-git clone "https://github.com/Intersec/pipenv-activate.git" "$OSH_CUSTOM/plugins/pipenv-activate"
+git clone "https://github.com/Intersec/pipenv-activate.git" "$OSH_CUSTOM/plugins/pyvenv-activate"
 ```
 
-Then add `pipenv-activate` to the list of plugins in your ``.bashrc``. Make sure it is **before** the line `source $OSH/oh-my-bash.sh`:
+Then add `pyvenv-activate` to the list of plugins in your ``.bashrc``. Make sure it is **before** the line `source $OSH/oh-my-bash.sh`:
 ```bash
-plugins=(... pipenv-activate)
+plugins=(... pyvenv-activate)
 ```
 
 To enable the automatic activation, add this line **after** the line `source $ZSH/oh-my-bash.sh`:
 ```bash
-pipenv_auto_activate_enable # Optional, enable auto activate, see below
+pyvenv_auto_activate_enable # Optional, enable auto activate, see below
 ```
 
 ### Manual installation
 
-`pipenv-activate.sh` can be sourced directly without any dependency.
+`pyvenvactivate.sh` can be sourced directly without any dependency.
 First, clone the repository:
 ```
 mkdir -p "$HOME/.sh-plugins"
-git clone "https://github.com/Intersec/pipenv-activate.git" "$HOME/.sh-plugins/pipenv-activate"
+git clone "https://github.com/Intersec/pipenv-activate.git" "$HOME/.sh-plugins/pyvenv-activate"
 ```
 
-Next, you need to source `pipenv-activate.sh` in the interactive
+Next, you need to source `pyvenv-activate.sh` in the interactive
 configuration file for your shell (`.bashrc` for bash, `.zshrc` for zsh, ...):
 ```
-. $HOME/.sh-plugins/pipenv-activate/pipenv-activate.sh
-pipenv_auto_activate_enable # Optional, enable auto activate, see below
+. $HOME/.sh-plugins/pyvenv-activate/pyvenv-activate.sh
+pyvenv_auto_activate_enable # Optional, enable auto activate, see below
 ```
 
 ## Usage
 
 ### Manually
 
-The virtual environment of a Pipenv project can be activated in the current
-shell manually with the function `pipenv_activate`.
+The virtual environment of a Python environment project can be activated in
+the current shell manually with the function `pyvenv_activate`.
 This works the same way as running `pipenv shell`, but no sub-shells are
 created.
 
 To deactivate the virtual environment, you will need to run
-`pipenv_deactivate`.
+`pyvenv_deactivate`.
 
 Example:
 ```console
-pauss@home: envs$ . ~/dev/pipenv-activate/pipenv-activate.sh
+pauss@home: envs$ . ~/dev/pyvenv-activate/pyvenv-activate.sh
 pauss@home: envs$ python --version
 Python 2.7.18rc1
 pauss@home: envs$ which python
@@ -153,7 +155,7 @@ pauss@home: envs/A$ python --version
 Python 2.7.18rc1
 pauss@home: envs/A$ which python
 /usr/bin/python
-pauss@home: envs/A$ pipenv_activate
+pauss@home: envs/A$ pyvenv_activate
 (A) pauss@home: envs/A$ python --version
 Python 3.8.2
 (A) pauss@home: envs/A$ which python
@@ -165,13 +167,13 @@ Python 3.8.2
 Python 3.8.2
 (A) pauss@home: envs$ which python
 /home/pauss/.local/share/virtualenvs/A-1baQ-YWx/bin/python
-(A) pauss@home: envs$ pipenv_deactivate
+(A) pauss@home: envs$ pyvenv_deactivate
 pauss@home: envs$ python --version
 Python 2.7.18rc1
 pauss@home: envs$ which python
 /usr/bin/python
 pauss@home: envs$ cd B
-pauss@home: envs/B$ pipenv_activate
+pauss@home: envs/B$ pyvenv_activate
 (B) pauss@home: envs/B$ python --version
 Python 3.8.2
 (B) pauss@home: envs/B$ which python
@@ -181,13 +183,13 @@ Traceback (most recent call last):
   File "<string>", line 1, in <module>
 ModuleNotFoundError: No module named 'six'
 (B) pauss@home:(1) envs/B$ cd ../C
-(B) pauss@home: envs/C$ pipenv_deactivate
+(B) pauss@home: envs/C$ pyvenv_deactivate
 pauss@home: envs/C$ echo $VAR_A
 
-pauss@home: envs/C$ pipenv_activate
+pauss@home: envs/C$ pyvenv_activate
 (C) pauss@home: envs/C$ echo $VAR_A
 foo
-(C) pauss@home: envs/C$ pipenv_deactivate
+(C) pauss@home: envs/C$ pyvenv_deactivate
 pauss@home: envs/C$ echo $VAR_A
 
 pauss@home: envs/C$
@@ -195,20 +197,21 @@ pauss@home: envs/C$
 
 ### Automatically
 
-`pipenv-activate` can also be used to automatically activate and deactivate
-the virtual environment when entering or exiting a Pipenv project.
+`pyvenv-activate` can also be used to automatically activate and deactivate
+the virtual environment when entering or exiting a Python virtual environment
+project.
 
 In order to enable it, you will need call the function
-`pipenv_auto_activate_enable` in the interactive configuration file of your
+`pyvenv_auto_activate_enable` in the interactive configuration file of your
 shell (`.bashrc` for bash, `.zshrc` for zsh, ...).
 
 It is possible to disable this mechanism by calling
-`pipenv_auto_activate_disable`.
+`pyvenv_auto_activate_disable`.
 
 Example:
 ```console
-pauss@home: envs$ . ~/dev/pipenv-activate/pipenv-activate.sh
-pauss@home: envs$ pipenv_auto_activate_enable
+pauss@home: envs$ . ~/dev/pyvenv-activate/pyvenv-activate.sh
+pauss@home: envs$ pyvenv_auto_activate_enable
 pauss@home: envs$ python --version
 Python 2.7.18rc1
 pauss@home: envs$ which python
@@ -248,35 +251,38 @@ pauss@home: envs$
 
 #### Mode
 
-For Bash and Zsh, by default, we check if we have entered or exited a Pipenv
-project on each prompt.
+For Bash and Zsh, by default, we check if we have entered or exited a Python
+virtual environment project on each prompt.
 
 This is useful because it covers the case when we are changing the current
-directory, and when we are creating a new Pipenv project.
+directory, and when we are creating a new Python virtual environment project.
 
-Checking if we are in Pipenv project is pretty fast, so it is normally not an
-issue to do it every prompt.
+Checking if we are in a Python virtual environment project is pretty fast, so
+it is normally not an issue to do it every prompt.
 
 For other POSIX shells, unfortunately, we don't have a hook that can be run
 every prompt.
 So, in order to still have access to the automatic activation, we redefine the
-command `cd` to check the Pipenv project when changing the current directory.
+command `cd` to check the Python virtual environment project when changing the
+current directory.
 
-If you don't want to check the Pipenv project on every prompt for Bash and
-Zsh, and only do the check when changing the current directory,
-`pipenv_auto_activate_enable` actually takes an optional argument which is the
-mode to use.
+If you don't want to check the Python virtual environment project on every
+prompt for Bash and Zsh, and only do the check when changing the current
+directory, `pyvenv_auto_activate_enable` actually takes an optional argument
+which is the mode to use.
 
 It can take three different values:
-* `prompt`: Check the Pipenv project on every prompt. This is the default for
-            Bash and Zsh. It is not available for other POSIX shells.
-* `chpwd`: Check the Pipenv project when changing the current directory.
+* `prompt`: Check the Python virtual environment project on every prompt. This
+            is the default for Bash and Zsh. It is not available for other
+            POSIX shells.
+* `chpwd`: Check the Python virtual environment project when changing the
+           current directory.
            This is the default for POSIX shells other than Bash and Zsh.
 * `default`: Use the best mode for the current shell.
 
 Example:
 ```shell
-pipenv_auto_activate_enable chpwd
+pyvenv_auto_activate_enable chpwd
 ```
 
 ## Tests

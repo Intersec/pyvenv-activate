@@ -61,10 +61,10 @@ test_pipenv_run() {
 }
 
 
-test_pipenv_activate() {
+test_pyvenv_activate() {
     # Change directory to env 3 and check dotenv variables.
     cd -- "$TEST_ENVS_TMPDIR/C" || fail "cd to env C"
-    pipenv_activate || fail "pipenv_activate in env C"
+    pyvenv_activate || fail "pyvenv_activate in env C"
     assertEquals "VAR A in env C" "$ENV_C_VAR_A" "$(th_get_env_var "VAR_A")"
     assertEquals "VAR B in env C" "$ENV_C_VAR_B" "$(th_get_env_var "VAR_B")"
     assertEquals "VAR C in env C" "$ENV_C_VAR_C" "$(th_get_env_var "VAR_C")"
@@ -74,11 +74,11 @@ test_pipenv_activate() {
     assertEquals "VAR G in env C" "$ENV_C_VAR_G" "$(th_get_env_var "VAR_G")"
     assertEquals "VAR F in shell env" "$ENV_C_VAR_F" "$VAR_F"
     assertEquals "VAR G in shell env" "$ENV_C_VAR_G" "$VAR_G"
-    pipenv_deactivate || fail "deactivate env C"
+    pyvenv_deactivate || fail "pyvenv_deactivate env C"
 
     # Change directory to env B and check dotenv variables.
     cd -- "$TEST_ENVS_TMPDIR/B" || fail "cd to env B"
-    pipenv_activate || fail "pipenv_activate in env B"
+    pyvenv_activate || fail "pyvenv_activate in env B"
     assertNull "VAR A in env B" "$(th_get_env_var "VAR_A")"
     assertNull "VAR B in env B" "$(th_get_env_var "VAR_B")"
     assertNull "VAR C in env B" "$(th_get_env_var "VAR_C")"
@@ -88,11 +88,11 @@ test_pipenv_activate() {
     assertEquals "VAR G in env B" "$TEST_VAR_G" "$(th_get_env_var "VAR_G")"
     assertEquals "VAR F in shell env" "$TEST_VAR_F" "$VAR_F"
     assertEquals "VAR G in shell env" "$TEST_VAR_G" "$VAR_G"
-    pipenv_deactivate || fail "deactivate env B"
+    pyvenv_deactivate || fail "pyvenv_deactivate env B"
 }
 
 
-th_test_pipenv_auto_activate() {
+th_test_pyvenv_auto_activate() {
     enable_cmd="$1"
     disable_cmd="$2"
     cd_cmd="$3"
@@ -132,8 +132,8 @@ th_test_pipenv_auto_activate() {
 
 suite() {
     suite_addTest 'test_pipenv_run'
-    suite_addTest 'test_pipenv_activate'
-    th_pipenv_auto_activate_suite
+    suite_addTest 'test_pyvenv_activate'
+    th_pyvenv_auto_activate_suite
 }
 
 
