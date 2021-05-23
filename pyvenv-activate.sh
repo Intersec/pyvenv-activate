@@ -256,107 +256,166 @@ EOF
         pa_dotenv_existing_vals_
 }
 
-# Find project directory containing a Pipenv file.
+# Find project directory containing a Python virtual environment file.
 #
-# It respects the PIPENV_MAX_DEPTH, PIPENV_NO_INHERIT and PIPENV_PIPFILE
-# environment variables.
+# For Pipenv, it respects the PIPENV_MAX_DEPTH, PIPENV_NO_INHERIT and
+# PIPENV_PIPFILE environment variables.
 #
 # Outputs:
-#   The Pipenv project root directory.
-_pyvenv_activate_find_proj_dir() {
-    if [ -z "$PIPENV_PIPFILE" ]; then
-        pa_current_dir_="$PWD"
+#   "$proj_type:$proj_dir" with:
+#       - proj_type: the project type, either "pipenv" or "poetry".
+#       - proj_dir:  the project root directory.
+_pyvenv_activate_find_proj() {
+    if [ -n "$PIPENV_PIPFILE" ] && [ -r "$PIPENV_PIPFILE" ]; then
+        # If PIPENV_PIPFILE is set and the file is present, use it instead.
+        echo "pipenv:$PIPENV_PIPFILE"
+        return 0
+    fi
 
-        if [ -z "$PIPENV_NO_INHERIT" ]; then
-            # Default PIPENV_MAX_DEPTH is 3 according to Pipenv documentation.
-            pa_max_depth_="${PIPENV_MAX_DEPTH:-3}"
-        else
-            pa_max_depth_=0
-        fi
+    pa_current_dir_="$PWD"
+
+    if [ -n "$PIPENV_NO_INHERIT" ]; then
+        # PIPENV_NO_INHERIT is set.
+        pa_pipenv_max_depth_=1
+    elif [ -z "$PIPENV_MAX_DEPTH" ]; then
+        # Default PIPENV_MAX_DEPTH is 3 according to Pipenv documentation.
+        pa_pipenv_max_depth_=3
+    elif ! [ "$PIPENV_MAX_DEPTH" -ge 1 ] 2>/dev/null; then
+        # PIPENV_MAX_DEPTH is not an integer or less than 1.
+        pa_pipenv_max_depth_=1
     else
-        pa_current_dir_="$(dirname -- "$PIPENV_PIPFILE")"
-        pa_max_depth_=0
+        # PIPENV_MAX_DEPTH is an integer greater or equal to 1.
+        pa_pipenv_max_depth_="$PIPENV_MAX_DEPTH"
     fi
 
     pa_i_=0
 
     while true; do
-        # Always do it at least once regardless of max depth.
-        if [ -r "$pa_current_dir_/Pipfile" ]; then
-            echo "$pa_current_dir_"
+        if [ "$pa_i_" -lt "$pa_pipenv_max_depth_" ] \
+        && [ -r "$pa_current_dir_/Pipfile.lock" ]; then
+            # Pipfile has been found according to the max depth.
+            echo "pipenv:$pa_current_dir_/Pipfile.lock"
+            break
+        fi
+
+        if [ -r "$pa_current_dir_/poetry.lock" ]; then
+            # Poetry has been found.
+            echo "poetry:$pa_current_dir_/poetry.lock"
             break
         fi
 
         if [ -z "$pa_current_dir_" ] || [ "$pa_current_dir_" = "/" ]; then
+            # We reached the root directory.
             break
         fi
 
         pa_i_=$((pa_i_ + 1))
 
-        # Use ! to break if $pa_max_depth_ is not a number.
-        if ! [ "$pa_i_" -lt "$pa_max_depth_" ]; then
-            break
-        fi
-
         # Use command substitution to get the dirname.
         pa_current_dir_="${pa_current_dir_%/*}"
     done
 
-    unset pa_max_depth_ pa_current_dir_ pa_i_
+    unset pa_current_dir_ pa_pipenv_max_depth_ pa_i_
 }
 
-# Activate python virtual environment in the current shell.
+# Activate python virtual environment preoject in the current shell.
 #
-# Unlike `pipenv shell`, this function will not create a sub-shell, but will
-# activate the pipenv virtual environment directly the current shell.
+# Unlike `pipenv shell` or `poerty shell`, this function will not create a
+# sub-shell, but will activate the python virtual environment directly the
+# current shell.
 #
 # Args:
-#   [proj_dir]: string: The path to the Pipenv project.
-#                       Default is to use the current directory.
-#   [venv_dir]: string: The path to the virtual environment directory to
-#                       activate.
-#                       Default is to use `pipenv --venv` in the project
-#                       directory.
+#   [proj_file]: string: The path to the python virtual environment project
+#                        file.
+#                        Default is to look for the file in the current
+#                        directory.
+#   [proj_type]: string: The type of the project to activate, either "pipenv"
+#                        or "poetry".
+#                        If not set, it will be automatically detected.
+#   [venv_dir]:  string: The path to the virtual environment directory to
+#                        activate.
+#                        Default is to use `pipenv --venv` or
+#                        `poetry env info -p` in the project directory.
 # Returns:
 #   0 on success, 1 on error.
-pyvenv_activate() {
-    pa_proj_dir_="$1"
-    pa_venv_dir_="$2"
+_pyvenv_activate_proj() {
+    pa_proj_file_="$1"
+    pa_proj_type_="$2"
+    pa_venv_dir_="$3"
 
-    if [ -z "$pa_proj_dir_" ]; then
-        pa_proj_dir_="$(_pyvenv_activate_find_proj_dir)"
-        if [ -z "$pa_proj_dir_" ]; then
-            # If the Pipenv project is not found, use $PWD to have a nice
-            # error later on.
-            pa_proj_dir_="$PWD"
+    if [ -z "$pa_proj_file_" ]; then
+        pa_proj_="$(_pyvenv_activate_find_proj)"
+        pa_proj_file_="${pa_proj_#*:}"
+        pa_proj_type_="${pa_proj_%%:*}"
+        unset pa_proj_
+
+        if [ -z "$pa_proj_file_" ]; then
+            echo "unable to find a valid python virtual environment in $PWD" >&2
+            unset pa_proj_file_ pa_proj_type_ pa_venv_dir_
+            return 1
+        fi
+    fi
+
+    if [ -z "$pa_proj_type_" ]; then
+        if [ "${pa_proj_file_##*/}" = "Pipfile.lock" ]; then
+            pa_proj_type_="pipenv"
+        elif [ "${pa_proj_file_##*/}" = "poetry.lock" ]; then
+            pa_proj_type_="poetry"
+        else
+            echo "unable to find python virtual environment project type for $pa_proj_file_" >&2
+            unset pa_proj_file_ pa_proj_type_ pa_venv_dir_
+            return 1
         fi
     fi
 
     if [ -z "$pa_venv_dir_" ]; then
-        pa_venv_dir_="$(pipenv --venv)" || return 1
+        if [ "$pa_proj_type_" = "pipenv" ]; then
+            pa_venv_dir_="$(pipenv --venv)" || return 1
+        elif [ "$pa_proj_type_" = "poetry" ]; then
+            pa_venv_dir_="$(unset VIRTUAL_ENV && poetry env info -p)" || return 1
+        else
+            echo "invalid python virtual environment project type $pa_proj_type_" >&2
+            unset pa_proj_file_ pa_proj_type_ pa_venv_dir_
+            return 1
+        fi
     fi
 
     if ! [ -f "$pa_venv_dir_/bin/activate" ]; then
         echo "$pa_venv_dir_ is not a valid virtual environment" >&2
-        unset pa_venv_dir_
+        unset pa_proj_file_ pa_proj_type_ pa_venv_dir_
         return 1
     fi
 
     if [ -n "$VIRTUAL_ENV" ] && [ "$VIRTUAL_ENV" != "$pa_venv_dir_" ]; then
         echo "another virtual environment is already active" >&2
-        unset pa_venv_dir_
+        unset pa_proj_file_ pa_proj_type_ pa_venv_dir_
         return 1
     fi
 
-    _pyvenv_activate_pipenv_load_dotenv "$pa_proj_dir_" || return 1
-
-    export PIPENV_ACTIVE=1
+    if [ "$pa_proj_type_" = "pipenv" ]; then
+        _pyvenv_activate_pipenv_load_dotenv "${pa_proj_file_%/*}" || return 1
+        export PIPENV_ACTIVE=1
+    elif [ "$pa_proj_type_" = "poetry" ]; then
+        export POETRY_ACTIVE=1
+    fi
 
     # shellcheck disable=SC1090
     . "$pa_venv_dir_/bin/activate" || return 1
 
-    unset pa_proj_dir_ pa_venv_dir_
+    unset pa_proj_file_ pa_proj_type_ pa_venv_dir_
     return 0
+}
+
+# Activate python virtual environment in the current shell.
+#
+# Unlike `pipenv shell` or `poerty shell`, this function will not create a
+# sub-shell, but will activate the python virtual environment directly the
+# current shell.
+#
+# Returns:
+#   0 on success, 1 on error.
+pyvenv_activate() {
+    _pyvenv_activate_proj
 }
 
 # }}}
@@ -423,6 +482,7 @@ pyvenv_deactivate() {
     fi
     unset PIPENV_ACTIVE
     _pyvenv_deactivate_pipenv_unload_dotenv || return 1
+    unset POETRY_ACTIVE
     return 0
 }
 
@@ -436,29 +496,38 @@ pyvenv_deactivate() {
 # Returns:
 #   0 on success, 1 on error.
 pyvenv_auto_activate_check_proj() {
-    pa_proj_dir_="$(_pyvenv_activate_find_proj_dir)"
+    pa_proj_="$(_pyvenv_activate_find_proj)"
+    pa_proj_file_="${pa_proj_#*:}"
+    pa_proj_type_="${pa_proj_%%:*}"
+    unset pa_proj_
 
-    if [ -n "$_PYVENV_AUTO_ACTIVATE_PROJ_DIR" ] \
-    && [ "$pa_proj_dir_" != "$_PYVENV_AUTO_ACTIVATE_PROJ_DIR" ]; then
-        # Deactivate the virtual environment if we have left the pyvenv
+    if [ -n "$_PYVENV_AUTO_ACTIVATE_PROJ_FILE" ] \
+    && [ "$pa_proj_file_" != "$_PYVENV_AUTO_ACTIVATE_PROJ_FILE" ]; then
+        # Deactivate the virtual environment if we have left the project
         # directory.
         pyvenv_deactivate >&2 || return 1
-        unset _PYVENV_AUTO_ACTIVATE_PROJ_DIR
+        unset _PYVENV_AUTO_ACTIVATE_PROJ_FILE
     fi
 
-    if [ -n "$pa_proj_dir_" ] \
-    && [ "$pa_proj_dir_" != "$_PYVENV_AUTO_ACTIVATE_PROJ_DIR" ] \
+    if [ -n "$pa_proj_file_" ] && [ -n "$pa_proj_type_" ] \
+    && [ "$pa_proj_file_" != "$_PYVENV_AUTO_ACTIVATE_PROJ_FILE" ] \
     && [ -z "$VIRTUAL_ENV" ]; then
-        pa_pyvenv_env_="$(pipenv --venv 2>/dev/null)"
-        if [ -n "$pa_pyvenv_env_" ]; then
+        if [ "$pa_proj_type_" = "pipenv" ]; then
+            pa_venv_dir_="$(pipenv --venv 2>/dev/null)"
+        elif [ "$pa_proj_type_" = "poetry" ]; then
+            pa_venv_dir_="$(unset VIRTUAL_ENV && poetry env info -p 2>/dev/null)"
+        fi
+
+        if [ -n "$pa_venv_dir_" ]; then
             # Activate the virtual environment if we have entered a new pipenv
             # directory and that no virtual environment has been activated
             # before.
-            export _PYVENV_AUTO_ACTIVATE_PROJ_DIR="$pa_proj_dir_"
-            pyvenv_activate "$pa_proj_dir_" "$pa_pyvenv_env_" >&2 || return 1
+            export _PYVENV_AUTO_ACTIVATE_PROJ_FILE="$pa_proj_file_"
+            _pyvenv_activate_proj "$pa_proj_file_" "$pa_proj_type_" \
+                                  "$pa_venv_dir_" >&2 || return 1
         fi
     fi
-    unset pa_proj_dir_ pa_pyvenv_env_
+    unset pa_proj_file_ pa_proj_type_ pa_venv_dir_
 }
 
 # }}}
@@ -664,17 +733,10 @@ pyvenv_auto_activate_disable() {
 # Unlike `pipenv shell`, this function will not create a sub-shell, but will
 # activate the pipenv virtual environment directly the current shell.
 #
-# Args:
-#   [proj_dir]: string: The path to the Pipenv project.
-#                       Default is to use the current directory.
-#   [venv_dir]: string: The path to the virtual environment directory to
-#                       activate.
-#                       Default is to use `pipenv --venv` in the project
-#                       directory.
 # Returns:
 #   0 on success, 1 on error.
 pipenv_activate() {
-    pyvenv_activate "$1" "$2"
+    pyvenv_activate
 }
 
 # Deactivate Pipenv environment in the current shell.

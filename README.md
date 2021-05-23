@@ -7,17 +7,20 @@
 or automatically activate and deactivate the Python virtual environment of
 projects within the current shell.
 
-It currently supports [Pipenv](https://github.com/pypa/pipenv) projects.
+It currently supports [Pipenv](https://github.com/pypa/pipenv) and
+[Poetry](https://github.com/python-poetry/poetry) projects.
 
-Unlike `pipenv shell`, the virtual environment is directly loaded in the
-current Shell environment and thus it will not start a new sub-shell when the
+Unlike `pipenv shell` or `poetry shell`, the virtual environment is directly
+loaded in the current Shell environment and thus it will not start a
+new sub-shell when the virtual environment is activated.
+
+For [Pipenv](https://github.com/pypa/pipenv) projects, similar to `pipenv run`
+or `pipenv shell`, when a `.env` is present, it will be loaded when the
 virtual environment is activated.
 
-Similar to `pipenv run` or `pipenv shell`, when a `.env` is present, it will
-be loaded when the virtual environment is activated.
-
-Of course, in order to work, [Pipenv](https://github.com/pypa/pipenv) must be
-installed first.
+Of course, in order to load the different environments,
+[Pipenv](https://github.com/pypa/pipenv) and/or
+[Poetry](https://github.com/python-poetry/poetry) must be installed first.
 
 
 ## Table of Contents
@@ -40,9 +43,11 @@ installed first.
 * Simple functions for virtual environment activation/deactivation.
 * Automatic virtual environment activation/deactivation when entering or
   exiting a Python virtual environment project.
-* Automatically loads `.env` file.
-* Respect Pipenv configuration environment variables (`PIPENV_MAX_DEPTH`,
-  `PIPENV_DOTENV_LOCATION`, ...).
+* For [Pipenv](https://github.com/pypa/pipenv) projects:
+    * Automatically load `.env` file.
+    * Respect [Pipenv configuration environment variables](
+https://pipenv.pypa.io/en/latest/advanced/#configuration-with-environment-variables)
+(`PIPENV_MAX_DEPTH`, `PIPENV_DOTENV_LOCATION`, ...).
 * Works with every POSIX shells (bash, zsh, ksh, ...).
 
 ## Installation
@@ -57,21 +62,21 @@ managers.
 [ZPlug](https://github.com/zplug/zplug)
 
 ```zsh
-zplug "Intersec/pyvenv-activate"
+zplug "Intersec/pipenv-activate"
 pyvenv_auto_activate_enable # Optional, enable auto activate, see below
 ```
 
 [Antigen](https://github.com/zsh-users/antigen)
 
 ```zsh
-antigen bundle "Intersec/pyvenv-activate"
+antigen bundle "Intersec/pipenv-activate"
 pyvenv_auto_activate_enable # Optional, enable auto activate, see below
 ```
 
 [Zgen](https://github.com/robbyrussell/oh-my-zsh)
 
 ```zsh
-zgen load "Intersec/pyvenv-activate"
+zgen load "Intersec/pipenv-activate"
 pyvenv_auto_activate_enable # Optional, enable auto activate, see below
 ```
 
