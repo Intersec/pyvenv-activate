@@ -88,7 +88,7 @@ th_setup_envs_tmpdir() {
 
     cp -R -- "$TEST_DIR/envs/." "$TEST_ENVS_TMPDIR"
 
-    for th_env_ in "$TEST_ENVS_TMPDIR"/*; do
+    for th_env_ in "$TEST_ENVS_TMPDIR/pipenv"/*; do
        (cd -- "$th_env_" && pipenv install) || return 1
     done
 
@@ -134,6 +134,7 @@ th_oneTimeSetUp() {
         th_setup_envs_tmpdir || return 1
     fi
 
+    TEST_ENVS_PIPENV="$TEST_ENVS_TMPDIR/pipenv"
     HOST_PYTHON_PATH="$(th_get_python_path '')"
     return 0
 }

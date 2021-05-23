@@ -29,12 +29,12 @@ EOF
 
 test_pipenv_run() {
     # Change directory to env A and check six version.
-    cd -- "$TEST_ENVS_TMPDIR/A" || fail "cd to env A"
+    cd -- "$TEST_ENVS_PIPENV/A" || fail "cd to env A"
     assertEquals "six version in env A" "$ENV_1_SIX_VERSION" \
         "$(get_six_version 'pipenv run')"
 
     # Change directory to env B and check six version.
-    cd -- "$TEST_ENVS_TMPDIR/B" || fail "cd to env B"
+    cd -- "$TEST_ENVS_PIPENV/B" || fail "cd to env B"
     assertEquals "six version in env B" "$ENV_2_SIX_VERSION" \
         "$(get_six_version 'pipenv run')"
 }
@@ -42,14 +42,14 @@ test_pipenv_run() {
 
 test_pyvenv_activate() {
     # Change directory to env A and check six version.
-    cd -- "$TEST_ENVS_TMPDIR/A" || fail "cd to env A"
+    cd -- "$TEST_ENVS_PIPENV/A" || fail "cd to env A"
     pyvenv_activate || fail "pyvenv_activate in env A"
     assertEquals "six version in env A" "$ENV_1_SIX_VERSION" \
         "$(get_six_version)"
     pyvenv_deactivate || fail "deactivate env A"
 
     # Change directory to env B and check six version.
-    cd -- "$TEST_ENVS_TMPDIR/B" || fail "cd to env B"
+    cd -- "$TEST_ENVS_PIPENV/B" || fail "cd to env B"
     pyvenv_activate || fail "pyvenv_activate in env B"
     assertEquals "six version in env B" "$ENV_2_SIX_VERSION" \
         "$(get_six_version)"
@@ -65,12 +65,12 @@ th_test_pyvenv_auto_activate() {
     $enable_cmd || fail "enable auto activate"
 
     # Change directory to env A and check six version.
-    $cd_cmd -- "$TEST_ENVS_TMPDIR/A" || fail "cd to env A"
+    $cd_cmd -- "$TEST_ENVS_PIPENV/A" || fail "cd to env A"
     assertEquals "six version in env A" "$ENV_1_SIX_VERSION" \
         "$(get_six_version)"
 
     # Change directory to env B and check six version.
-    $cd_cmd -- "$TEST_ENVS_TMPDIR/B" || fail "cd to env B"
+    $cd_cmd -- "$TEST_ENVS_PIPENV/B" || fail "cd to env B"
     assertEquals "six version in env B" "$ENV_2_SIX_VERSION" \
         "$(get_six_version)"
 

@@ -36,7 +36,7 @@ setUp() {
 
 test_pipenv_run() {
     # Change directory to env C and check dotenv variables.
-    cd -- "$TEST_ENVS_TMPDIR/C" || fail "cd to env C"
+    cd -- "$TEST_ENVS_PIPENV/C" || fail "cd to env C"
     assertEquals "VAR A in env C" "$ENV_C_VAR_A" "$(th_get_env_var "VAR_A" 'pipenv run')"
     assertEquals "VAR B in env C" "$ENV_C_VAR_B" "$(th_get_env_var "VAR_B" 'pipenv run')"
     assertEquals "VAR C in env C" "$ENV_C_VAR_C" "$(th_get_env_var "VAR_C" 'pipenv run')"
@@ -48,7 +48,7 @@ test_pipenv_run() {
     assertEquals "VAR G in shell env" "$TEST_VAR_G" "$VAR_G"
 
     # Change directory to env B and check dotenv variables.
-    cd -- "$TEST_ENVS_TMPDIR/B" || fail "cd to env B"
+    cd -- "$TEST_ENVS_PIPENV/B" || fail "cd to env B"
     assertNull "VAR A in env B" "$(th_get_env_var "VAR_A" 'pipenv run')"
     assertNull "VAR B in env B" "$(th_get_env_var "VAR_B" 'pipenv run')"
     assertNull "VAR C in env B" "$(th_get_env_var "VAR_C" 'pipenv run')"
@@ -63,7 +63,7 @@ test_pipenv_run() {
 
 test_pyvenv_activate() {
     # Change directory to env 3 and check dotenv variables.
-    cd -- "$TEST_ENVS_TMPDIR/C" || fail "cd to env C"
+    cd -- "$TEST_ENVS_PIPENV/C" || fail "cd to env C"
     pyvenv_activate || fail "pyvenv_activate in env C"
     assertEquals "VAR A in env C" "$ENV_C_VAR_A" "$(th_get_env_var "VAR_A")"
     assertEquals "VAR B in env C" "$ENV_C_VAR_B" "$(th_get_env_var "VAR_B")"
@@ -77,7 +77,7 @@ test_pyvenv_activate() {
     pyvenv_deactivate || fail "pyvenv_deactivate env C"
 
     # Change directory to env B and check dotenv variables.
-    cd -- "$TEST_ENVS_TMPDIR/B" || fail "cd to env B"
+    cd -- "$TEST_ENVS_PIPENV/B" || fail "cd to env B"
     pyvenv_activate || fail "pyvenv_activate in env B"
     assertNull "VAR A in env B" "$(th_get_env_var "VAR_A")"
     assertNull "VAR B in env B" "$(th_get_env_var "VAR_B")"
@@ -100,7 +100,7 @@ th_test_pyvenv_auto_activate() {
     $enable_cmd || fail "enable auto activate"
 
     # Change directory to env C and check dotenv variables.
-    $cd_cmd -- "$TEST_ENVS_TMPDIR/C" || fail "cd to env C"
+    $cd_cmd -- "$TEST_ENVS_PIPENV/C" || fail "cd to env C"
     assertEquals "VAR A in env C" "$ENV_C_VAR_A" "$(th_get_env_var "VAR_A")"
     assertEquals "VAR B in env C" "$ENV_C_VAR_B" "$(th_get_env_var "VAR_B")"
     assertEquals "VAR C in env C" "$ENV_C_VAR_C" "$(th_get_env_var "VAR_C")"
@@ -112,7 +112,7 @@ th_test_pyvenv_auto_activate() {
     assertEquals "VAR G in shell env" "$ENV_C_VAR_G" "$VAR_G"
 
     # Change directory to env B and check dotenv variables.
-    $cd_cmd -- "$TEST_ENVS_TMPDIR/B" || fail "cd to env B"
+    $cd_cmd -- "$TEST_ENVS_PIPENV/B" || fail "cd to env B"
     assertNull "VAR A in env B" "$(th_get_env_var "VAR_A")"
     assertNull "VAR B in env B" "$(th_get_env_var "VAR_B")"
     assertNull "VAR C in env B" "$(th_get_env_var "VAR_C")"
