@@ -35,6 +35,9 @@ jobs:
           - script: python -m pip install pipenv
             displayName: Install pipenv
 
+          - script: python -m pip install poetry
+            displayName: Install poetry
+
           - checkout: self
             submodules: true
             displayName: Checkout submodules
