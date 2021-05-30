@@ -105,7 +105,14 @@ th_setup_envs_tmpdir() {
 th_get_python_path() {
     cmd_prefix="${1:-}"
 
-    $cmd_prefix which python3
+    # Look for the first python in python, python3 and python2.
+    for py_cmd in python python3 python2; do
+        if py_path="$($cmd_prefix which $py_cmd)"; then
+            echo "$py_path"
+            return 0
+        fi
+    done
+    return 1
 }
 
 th_get_pipenv_venv() {
