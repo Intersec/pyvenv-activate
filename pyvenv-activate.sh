@@ -7,6 +7,21 @@
 # shellcheck disable=SC2034
 PYVENV_ACTIVATE_VERSION=2.0
 
+# {{{ Helpers
+
+# Safe version of echo by using printf.
+#
+# See
+# https://oliviercontant.com/why-is-printf-better-than-echo-in-shell-scripting/
+# why echo is not safe with uncontrolled data.
+_pyvenv_activate_safe_echo() {
+    (
+        IFS=" "
+        printf '%s\n' "$*"
+    )
+}
+
+# }}}
 # {{{ Pyvenv activate
 
 # Try to find pipenv module for the given python executable.
@@ -50,7 +65,7 @@ _pyvenv_activate_get_pipenv_python_exec() {
             && _pyvenv_activate_find_pipenv_module "$pa_python_exec"; then
                 # pipenv module has been found for the given python
                 # executable, return now.
-                echo "$pa_python_exec"
+                _pyvenv_activate_safe_echo "$pa_python_exec"
                 break 2
             fi
 
@@ -175,7 +190,7 @@ _pyvenv_activate_pipenv_load_dotenv() {
     # Get the python executable
     pa_python_exec_="$(_pyvenv_activate_get_pipenv_python_exec)"
     if [ -z "$pa_python_exec_" ]; then
-        echo "unable to find python executable" >&2
+        _pyvenv_activate_safe_echo "unable to find python executable" >&2
         return 1
     fi
 
@@ -270,7 +285,7 @@ EOF
 _pyvenv_activate_find_proj() {
     if [ -n "$PIPENV_PIPFILE" ] && [ -r "$PIPENV_PIPFILE" ]; then
         # If PIPENV_PIPFILE is set and the file is present, use it instead.
-        echo "pipenv:$PIPENV_PIPFILE"
+        _pyvenv_activate_safe_echo "pipenv:$PIPENV_PIPFILE"
         return 0
     fi
 
@@ -296,13 +311,13 @@ _pyvenv_activate_find_proj() {
         if [ "$pa_i_" -lt "$pa_pipenv_max_depth_" ] \
         && [ -r "$pa_current_dir_/Pipfile.lock" ]; then
             # Pipfile has been found according to the max depth.
-            echo "pipenv:$pa_current_dir_/Pipfile.lock"
+            _pyvenv_activate_safe_echo "pipenv:$pa_current_dir_/Pipfile.lock"
             break
         fi
 
         if [ -r "$pa_current_dir_/poetry.lock" ]; then
             # Poetry has been found.
-            echo "poetry:$pa_current_dir_/poetry.lock"
+            _pyvenv_activate_safe_echo "poetry:$pa_current_dir_/poetry.lock"
             break
         fi
 
@@ -352,7 +367,7 @@ _pyvenv_activate_proj() {
         unset pa_proj_
 
         if [ -z "$pa_proj_file_" ]; then
-            echo "unable to find a valid python virtual environment in $PWD" >&2
+            _pyvenv_activate_safe_echo "unable to find a valid python virtual environment in $PWD" >&2
             unset pa_proj_file_ pa_proj_type_ pa_venv_dir_
             return 1
         fi
@@ -364,7 +379,7 @@ _pyvenv_activate_proj() {
         elif [ "${pa_proj_file_##*/}" = "poetry.lock" ]; then
             pa_proj_type_="poetry"
         else
-            echo "unable to find python virtual environment project type for $pa_proj_file_" >&2
+            _pyvenv_activate_safe_echo "unable to find python virtual environment project type for $pa_proj_file_" >&2
             unset pa_proj_file_ pa_proj_type_ pa_venv_dir_
             return 1
         fi
@@ -376,20 +391,20 @@ _pyvenv_activate_proj() {
         elif [ "$pa_proj_type_" = "poetry" ]; then
             pa_venv_dir_="$(unset VIRTUAL_ENV && poetry env info -p)" || return 1
         else
-            echo "invalid python virtual environment project type $pa_proj_type_" >&2
+            _pyvenv_activate_safe_echo "invalid python virtual environment project type $pa_proj_type_" >&2
             unset pa_proj_file_ pa_proj_type_ pa_venv_dir_
             return 1
         fi
     fi
 
     if ! [ -f "$pa_venv_dir_/bin/activate" ]; then
-        echo "$pa_venv_dir_ is not a valid virtual environment" >&2
+        _pyvenv_activate_safe_echo "$pa_venv_dir_ is not a valid virtual environment" >&2
         unset pa_proj_file_ pa_proj_type_ pa_venv_dir_
         return 1
     fi
 
     if [ -n "$VIRTUAL_ENV" ] && [ "$VIRTUAL_ENV" != "$pa_venv_dir_" ]; then
-        echo "another virtual environment is already active" >&2
+        _pyvenv_activate_safe_echo "another virtual environment is already active" >&2
         unset pa_proj_file_ pa_proj_type_ pa_venv_dir_
         return 1
     fi
@@ -442,7 +457,7 @@ EOF
     if [ -n "$_PYVENV_ACTIVATE_PIPENV_DOTENV_EXISTING_VALS" ]; then
         pa_python_exec_="$(_pyvenv_activate_get_pipenv_python_exec)"
         if [ -z "$pa_python_exec_" ]; then
-            echo "unable to find python executable" >&2
+            _pyvenv_activate_safe_echo "unable to find python executable" >&2
             return 1
         fi
 
@@ -549,20 +564,20 @@ pyvenv_auto_activate_check_proj() {
 #   0 on success, 1 on error.
 _pyvenv_auto_activate_enable_redefine_cd() {
     if [ "$1" = "prompt" ]; then
-        echo "prompt mode is not supported when redefining cd" >&2
+        _pyvenv_activate_safe_echo "prompt mode is not supported when redefining cd" >&2
         return 1
     fi
 
     # shellcheck disable=SC2039
     if [ "$(type cd)" != "cd is a shell builtin" ]; then
-        echo "command cd is already redefined" >&2
+        _pyvenv_activate_safe_echo "command cd is already redefined" >&2
         return 1
     fi
 
     # Some shells use `builtin` for calling the original cd command, others
     # use `command`.
     # shellcheck disable=SC2039
-    if (builtin echo "123" >/dev/null 2>&1); then
+    if (builtin printf "123" >/dev/null 2>&1); then
         cd() {
             # shellcheck disable=SC2039
             builtin cd "$@" && pyvenv_auto_activate_check_proj
@@ -652,7 +667,7 @@ pyvenv_auto_activate_enable() {
         prompt|chpwd|default)
             ;;
         *)
-            echo "unknow mode $pa_mode_" >&2
+            _pyvenv_activate_safe_echo "unknow mode $pa_mode_" >&2
             return 1
             ;;
     esac
@@ -694,7 +709,7 @@ _pyvenv_auto_activate_disable_redefine_cd() {
 # Returns:
 #   0 on success, 1 on error.
 _pyvenv_auto_activate_disable_bash() {
-    PROMPT_COMMAND="$(echo "$PROMPT_COMMAND" | \
+    PROMPT_COMMAND="$(_pyvenv_activate_safe_echo "$PROMPT_COMMAND" | \
         sed -E -e 's/pyvenv_auto_activate_check_proj;?//g' \
                -e 's/_pyvenv_auto_activate_bash_chpwd_cmd;?//g')"
 }
