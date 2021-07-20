@@ -22,6 +22,23 @@ _pyvenv_activate_safe_echo() {
     )
 }
 
+# Call builtin cd command even if cd has been redefined.
+#
+# Some shells use `builtin` for calling the original cd command, others
+# use `command`.
+#
+# shellcheck disable=SC2039
+if (builtin printf "123" >/dev/null 2>&1); then
+    _pyvenv_activate_builtin_cd() {
+        # shellcheck disable=SC2039,SC2164
+        builtin cd "$@"
+    }
+else
+    _pyvenv_activate_builtin_cd() {
+        command cd "$@"
+    }
+fi
+
 # }}}
 # {{{ Pyvenv activate
 
@@ -663,19 +680,9 @@ _pyvenv_auto_activate_enable_redefine_cd() {
         return 1
     fi
 
-    # Some shells use `builtin` for calling the original cd command, others
-    # use `command`.
-    # shellcheck disable=SC2039
-    if (builtin printf "123" >/dev/null 2>&1); then
-        cd() {
-            # shellcheck disable=SC2039
-            builtin cd "$@" && pyvenv_auto_activate_check_proj
-        }
-    else
-        cd() {
-            command cd "$@" && pyvenv_auto_activate_check_proj
-        }
-    fi
+    cd() {
+        _pyvenv_activate_builtin_cd "$@" && pyvenv_auto_activate_check_proj
+    }
 
     return 0
 }
