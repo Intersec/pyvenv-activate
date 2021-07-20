@@ -6,6 +6,7 @@
 
 # shellcheck disable=SC2034
 PYVENV_ACTIVATE_VERSION=2.0
+PYVENV_ACTIVATE_SETUP_FILE_NAME=.pyvenv_setup_path
 
 # {{{ Helpers
 
@@ -740,6 +741,76 @@ pyvenv_auto_activate_disable() {
 }
 
 # }}}
+# }}}
+# {{{ Pyvenv setup
+
+# Setup pyvenv-activate to work with an existing python virtual environment.
+#
+# The virtual environment absolute path will be stored in a file named after
+# the variable $PYVENV_ACTIVATE_SETUP_FILE_NAME in the project directory.
+#
+# The file is created with read-only rights (400) for the owner.
+#
+# Args:
+#   [venv_path]: string: The path to the virtual env to register.
+#                        It must be the absolute path of the activated
+#                        environment.
+#                        If not set, $VIRTUAL_ENV is used.
+#   [proj_path]: string: The path to the project where to store the virtual
+#                        environment path file.
+#                        It must be the absolute path of the project path.
+#                        If not set, use the current directory.
+# Returns:
+#   0 on success, 1 on error.
+pyvenv_setup() {
+    pa_venv_path_="$1"
+    pa_proj_path_="$2"
+
+    if [ -z "$pa_venv_path_" ]; then
+        if [ -z "$VIRTUAL_ENV" ]; then
+            _pyvenv_activate_safe_echo "no venv path provided and VIRTUAL_ENV variable not set" >&2
+            unset pa_venv_path_ pa_proj_path_
+            return 1
+        fi
+        pa_venv_path_="$VIRTUAL_ENV"
+    fi
+
+    if [ "$pa_venv_path_" = "${pa_venv_path_#/}" ]; then
+        _pyvenv_activate_safe_echo "'$pa_venv_path_' is not an absolute path" >&2
+        unset pa_venv_path_ pa_proj_path_
+        return 1
+    fi
+
+    if ! [ -f "$pa_venv_path_/bin/activate" ]; then
+        _pyvenv_activate_safe_echo "'$pa_venv_path_' is not a valid virtual environment" >&2
+        unset pa_venv_path_ pa_proj_path_
+        return 1
+    fi
+
+    if [ -z "$pa_proj_path_" ]; then
+        pa_proj_path_="$PWD"
+    fi
+
+    if [ "$pa_proj_path_" = "${pa_proj_path_#/}" ]; then
+        _pyvenv_activate_safe_echo "'$pa_proj_path_' is not an absolute path" >&2
+        unset pa_venv_path_ pa_proj_path_
+        return 1
+    fi
+
+    pa_setup_file_="$pa_proj_path_/$PYVENV_ACTIVATE_SETUP_FILE_NAME"
+
+    if [ -r "$pa_setup_file_" ]; then
+        _pyvenv_activate_safe_echo "'$pa_setup_file_' is already present, remove it before calling pyvenv_setup() again" >&2
+        unset pa_venv_path_ pa_proj_path_ pa_setup_file_
+        return 1
+    fi
+
+    _pyvenv_activate_safe_echo "$pa_venv_path_" > "$pa_setup_file_" || return 1
+    chmod 400 "$pa_setup_file_" || return 1
+
+    unset pa_venv_path_ pa_proj_path_ pa_setup_file_
+}
+
 # }}}
 # {{{ pipenv-activate compatibility
 
