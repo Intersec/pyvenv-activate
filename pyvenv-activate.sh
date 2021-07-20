@@ -4,6 +4,8 @@
 # and deactivate a python virtual environment directly within the current
 # shell.
 
+# shellcheck disable=SC2034
+PYVENV_ACTIVATE_VERSION=2.0
 
 # {{{ Pyvenv activate
 
