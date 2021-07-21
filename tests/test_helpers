@@ -98,11 +98,21 @@ th_setup_envs_tmpdir() {
     cp -R -- "$TEST_DIR/envs/." "$TEST_ENVS_TMPDIR"
 
     for th_env_ in "$TEST_ENVS_TMPDIR/pipenv"/*; do
-       (cd -- "$th_env_" && pipenv install) || return 1
+        (cd -- "$th_env_" && pipenv install) || return 1
     done
 
     for th_env_ in "$TEST_ENVS_TMPDIR/poetry"/*; do
-       (cd -- "$th_env_" && poetry install) || return 1
+        (cd -- "$th_env_" && poetry install) || return 1
+    done
+
+    for th_env_ in "$TEST_ENVS_TMPDIR/venv"/*; do
+        (
+            cd -- "$th_env_" && \
+            virtualenv .pyvenv_venv && \
+            . .pyvenv_venv/bin/activate && \
+            ! test -r requirements.txt || \
+            pip install -r requirements.txt
+        ) || return 1
     done
 
     touch "$TEST_ENVS_TMPDIR/.setup" || return 1
@@ -146,6 +156,23 @@ th_get_env_var() {
     $cmd_prefix python3 -c "import os; print(os.environ.get('$env_var', ''))"
 }
 
+th_pyvenv_setup_venv() {
+    env_dir="${1:-$PWD}"
+
+    rm -f -- "$env_dir/$PYVENV_ACTIVATE_SETUP_FILE_NAME"
+    pyvenv_setup "$env_dir/.pyvenv_venv" "$env_dir"
+}
+
+th_activate_venv() {
+    env_dir="$1"
+
+    if [ -n "$VIRTUAL_ENV" ]; then
+        deactivate || return 1
+    fi
+
+    . "$env_dir/.pyvenv_venv/bin/activate"
+}
+
 # }}}
 # {{{ Default setup/teardown functions
 
@@ -163,6 +190,7 @@ th_oneTimeSetUp() {
 
     TEST_ENVS_PIPENV="$TEST_ENVS_TMPDIR/pipenv"
     TEST_ENVS_POETRY="$TEST_ENVS_TMPDIR/poetry"
+    TEST_ENVS_VENV="$TEST_ENVS_TMPDIR/venv"
 
     HOST_PYTHON_PATH="$(th_get_python_path '')"
     return 0
@@ -184,6 +212,11 @@ th_setUp() {
     # Get back to tmpdir every time we start or exit test to provide
     # consistency.
     cd -- "$TEST_START_PWD" || return 1
+
+    # Deactivate the previous virtual env if any.
+    if [ -n "$VIRTUAL_ENV" ]; then
+        deactivate || return 1
+    fi
 }
 setUp() {
     th_setUp
@@ -231,6 +264,10 @@ test_pyvenv_auto_activate_check_proj_poetry() {
     th_pyvenv_auto_activate_check_proj "poetry"
 }
 
+test_pyvenv_auto_activate_check_proj_venv() {
+    th_pyvenv_auto_activate_check_proj "venv"
+}
+
 th_pyvenv_auto_activate_redefine_cd() {
     "th_test_pyvenv_auto_activate_$1" \
         "_pyvenv_auto_activate_enable_redefine_cd" \
@@ -244,6 +281,10 @@ test_pyvenv_auto_activate_redefine_cd_pipenv() {
 
 test_pyvenv_auto_activate_redefine_cd_poetry() {
     th_pyvenv_auto_activate_redefine_cd "poetry"
+}
+
+test_pyvenv_auto_activate_redefine_cd_venv() {
+    th_pyvenv_auto_activate_redefine_cd "venv"
 }
 
 th_auto_activate_bash_cd() {
@@ -273,6 +314,10 @@ test_pyvenv_auto_activate_bash_prompt_poetry() {
     th_pyvenv_auto_activate_bash_prompt "poetry"
 }
 
+test_pyvenv_auto_activate_bash_prompt_venv() {
+    th_pyvenv_auto_activate_bash_prompt "venv"
+}
+
 th_pyvenv_auto_activate_bash_chpwd() {
     "th_test_pyvenv_auto_activate_$1" \
         "pyvenv_auto_activate_enable chpwd" \
@@ -286,6 +331,10 @@ test_pyvenv_auto_activate_bash_chpwd_pipenv() {
 
 test_pyvenv_auto_activate_bash_chpwd_poetry() {
     th_pyvenv_auto_activate_bash_chpwd "poetry"
+}
+
+test_pyvenv_auto_activate_bash_chpwd_venv() {
+    th_pyvenv_auto_activate_bash_chpwd "venv"
 }
 
 th_auto_activate_zsh_cd() {
@@ -317,6 +366,10 @@ test_pyvenv_auto_activate_zsh_prompt_poetry() {
     th_pyvenv_auto_activate_zsh_prompt "poetry"
 }
 
+test_pyvenv_auto_activate_zsh_prompt_venv() {
+    th_pyvenv_auto_activate_zsh_prompt "venv"
+}
+
 th_pyvenv_auto_activate_zsh_chpwd() {
     "th_test_pyvenv_auto_activate_$1" \
         "pyvenv_auto_activate_enable chpwd" \
@@ -332,22 +385,32 @@ test_pyvenv_auto_activate_zsh_chpwd_poetry() {
     th_pyvenv_auto_activate_zsh_chpwd "poetry"
 }
 
+test_pyvenv_auto_activate_zsh_chpwd_venv() {
+    th_pyvenv_auto_activate_zsh_chpwd "venv"
+}
+
 th_pyvenv_auto_activate_suite() {
     suite_addTest 'test_pyvenv_auto_activate_check_proj_pipenv'
     suite_addTest 'test_pyvenv_auto_activate_check_proj_poetry'
+    suite_addTest 'test_pyvenv_auto_activate_check_proj_venv'
     suite_addTest 'test_pyvenv_auto_activate_redefine_cd_pipenv'
     suite_addTest 'test_pyvenv_auto_activate_redefine_cd_poetry'
+    suite_addTest 'test_pyvenv_auto_activate_redefine_cd_venv'
     if [ -n "$BASH_VERSION" ]; then
         suite_addTest 'test_pyvenv_auto_activate_bash_prompt_pipenv'
         suite_addTest 'test_pyvenv_auto_activate_bash_prompt_poetry'
+        suite_addTest 'test_pyvenv_auto_activate_bash_prompt_venv'
         suite_addTest 'test_pyvenv_auto_activate_bash_chpwd_pipenv'
         suite_addTest 'test_pyvenv_auto_activate_bash_chpwd_poetry'
+        suite_addTest 'test_pyvenv_auto_activate_bash_chpwd_venv'
     fi
     if [ -n "$ZSH_VERSION" ]; then
         suite_addTest 'test_pyvenv_auto_activate_zsh_prompt_pipenv'
         suite_addTest 'test_pyvenv_auto_activate_zsh_prompt_poetry'
+        suite_addTest 'test_pyvenv_auto_activate_zsh_prompt_venv'
         suite_addTest 'test_pyvenv_auto_activate_zsh_chpwd_pipenv'
         suite_addTest 'test_pyvenv_auto_activate_zsh_chpwd_poetry'
+        suite_addTest 'test_pyvenv_auto_activate_zsh_chpwd_venv'
     fi
 }
 

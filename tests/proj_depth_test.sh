@@ -274,6 +274,39 @@ test_pyvenv_activate_poetry() {
 }
 
 
+test_pyvenv_activate_venv() {
+    # Check test environment is ok.
+    assertEquals "check host env" "$HOST_PYTHON_PATH" "$(th_get_python_path)"
+
+    # Change directory to env A and check python path.
+    cd -- "$TEST_ENVS_VENV/A" || fail "cd to env A"
+    th_pyvenv_setup_venv || fail "setup in env A"
+    pyvenv_activate || fail "pyvenv_activate in env A"
+    env_a_python_path="$(th_get_python_path)"
+    assertNotEquals "python path not equals to host in env A"\
+        "$HOST_PYTHON_PATH" "$env_a_python_path"
+    pyvenv_deactivate || fail "deactivate env A"
+
+    # Check PIPENV_MAX_DEPTH has not effect with virtualenv projects.
+    export PIPENV_MAX_DEPTH=1
+    cd -- "$TEST_ENVS_VENV/A/1/2/3" || fail "cd to env A/1/2/3"
+    pyvenv_activate || fail "pyvenv_activate in env A/1/2/3"
+    assertEquals "PIPENV_MAX_DEPTH has not effect on virtualenv project env A"\
+        "$env_a_python_path" "$(th_get_python_path)"
+    pyvenv_deactivate || fail "deactivate env A"
+    unset PIPENV_MAX_DEPTH
+
+    # Check PIPENV_NO_INHERIT has not effect with virtualenv projects.
+    export PIPENV_NO_INHERIT=1
+    cd -- "$TEST_ENVS_VENV/A/1/2/3" || fail "cd to env A/1/2/3"
+    pyvenv_activate || fail "pyvenv_activate in env A/1/2/3"
+    assertEquals "PIPENV_NO_INHERIT has not effect on virtualenv project env A"\
+        "$env_a_python_path" "$(th_get_python_path)"
+    pyvenv_deactivate || fail "deactivate env A"
+    unset PIPENV_NO_INHERIT
+}
+
+
 th_test_pyvenv_auto_activate_pipenv() {
     enable_cmd="$1"
     disable_cmd="$2"
@@ -377,7 +410,6 @@ th_test_pyvenv_auto_activate_pipenv() {
 }
 
 
-
 th_test_pyvenv_auto_activate_poetry() {
     enable_cmd="$1"
     disable_cmd="$2"
@@ -415,11 +447,51 @@ th_test_pyvenv_auto_activate_poetry() {
 }
 
 
+th_test_pyvenv_auto_activate_venv() {
+    enable_cmd="$1"
+    disable_cmd="$2"
+    cd_cmd="$3"
+
+    th_pyvenv_setup_venv "$TEST_ENVS_VENV/A" || fail "setup in env A"
+
+    $enable_cmd || fail "enable auto activate"
+
+    # Check test environment is ok.
+    assertEquals "check host env" "$HOST_PYTHON_PATH" "$(th_get_python_path)"
+
+    # Change directory to env A and check python path.
+    $cd_cmd -- "$TEST_ENVS_VENV/A" || fail "cd to env A"
+    env_a_python_path="$(th_get_python_path)"
+    assertNotEquals "python path not equals to host in env A after cd"\
+        "$HOST_PYTHON_PATH" "$env_a_python_path"
+
+    # Check PIPENV_MAX_DEPTH has not effect with virtualenv projects.
+    export PIPENV_MAX_DEPTH=1
+    $cd_cmd -- "$TEST_ENVS_VENV/A/1/2/3" || fail "cd to env A/1/2/3"
+    assertEquals "PIPENV_MAX_DEPTH has not effect on virtualenv project env A"\
+        "$env_a_python_path" "$(th_get_python_path)"
+    unset PIPENV_MAX_DEPTH
+
+    # Check PIPENV_NO_INHERIT has not effect with virtualenv projects.
+    export PIPENV_NO_INHERIT=1
+    $cd_cmd -- "$TEST_ENVS_VENV/A/1/2/3" || fail "cd to env A/1/2/3"
+    assertEquals "PIPENV_NO_INHERIT has not effect on virtualenv project env A"\
+        "$env_a_python_path" "$(th_get_python_path)"
+    unset PIPENV_NO_INHERIT
+
+    # Go back to envs tmpdir
+    $cd_cmd -- "$TEST_ENVS_TMPDIR" || fail "cd to envs tmpdir"
+
+    $disable_cmd || fail "disable auto activate"
+}
+
+
 suite() {
     suite_addTest 'test_pipenv_run'
     suite_addTest 'test_poetry_run'
     suite_addTest 'test_pyvenv_activate_pipenv'
     suite_addTest 'test_pyvenv_activate_poetry'
+    suite_addTest 'test_pyvenv_activate_venv'
     th_pyvenv_auto_activate_suite
 }
 
