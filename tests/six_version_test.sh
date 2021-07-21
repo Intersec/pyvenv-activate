@@ -202,7 +202,7 @@ suite() {
     suite_addTest 'test_pyvenv_activate_pipenv'
     suite_addTest 'test_pyvenv_activate_poetry'
     suite_addTest 'test_pyvenv_activate_venv'
-    th_pyvenv_auto_activate_suite
+    th_pyvenv_auto_activate_suite 'pipenv' 'poetry' 'venv'
 }
 
 
