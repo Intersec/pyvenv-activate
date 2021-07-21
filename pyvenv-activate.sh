@@ -309,16 +309,25 @@ _pyvenv_activate_find_proj() {
     pa_i_=0
 
     while true; do
+        pa_proj_file_="$pa_current_dir_/Pipfile.lock"
         if [ "$pa_i_" -lt "$pa_pipenv_max_depth_" ] \
-        && [ -r "$pa_current_dir_/Pipfile.lock" ]; then
+        && [ -r "$pa_proj_file_" ]; then
             # Pipfile has been found according to the max depth.
-            _pyvenv_activate_safe_echo "pipenv:$pa_current_dir_/Pipfile.lock"
+            _pyvenv_activate_safe_echo "pipenv:$pa_proj_file_"
             break
         fi
 
+        pa_proj_file_="$pa_current_dir_/poetry.lock"
         if [ -r "$pa_current_dir_/poetry.lock" ]; then
             # Poetry has been found.
-            _pyvenv_activate_safe_echo "poetry:$pa_current_dir_/poetry.lock"
+            _pyvenv_activate_safe_echo "poetry:$pa_proj_file_"
+            break
+        fi
+
+        pa_proj_file_="$pa_current_dir_/$PYVENV_ACTIVATE_SETUP_FILE_NAME"
+        if [ -r "$pa_proj_file_" ]; then
+            # Setup file has been found.
+            _pyvenv_activate_safe_echo "venv:$pa_proj_file_"
             break
         fi
 
@@ -333,12 +342,94 @@ _pyvenv_activate_find_proj() {
         pa_current_dir_="${pa_current_dir_%/*}"
     done
 
-    unset pa_current_dir_ pa_pipenv_max_depth_ pa_i_
+    unset pa_current_dir_ pa_pipenv_max_depth_ pa_i_ pa_proj_file_
 }
 
-# Activate python virtual environment preoject in the current shell.
+# Get python virtual environment directory of the project.
 #
-# Unlike `pipenv shell` or `poerty shell`, this function will not create a
+# Args:
+#   proj_file: string: The path to the project file.
+#   proj_type: string: The type of the project to activate, "pipenv",
+#                      "poetry" or "venv".
+# Outputs:
+#   The virtual environment directory.
+#
+# Returns:
+#   0 on success, 1 on error.
+_pyvenv_activate_get_venv_dir() {
+    pa_proj_file_="$1"
+    pa_proj_type_="$2"
+
+    case "$pa_proj_type_" in
+        pipenv)
+            if ! pipenv --venv; then
+                unset pa_proj_file_ pa_proj_type_
+                return 1
+            fi
+            ;;
+
+        poetry)
+            if ! (unset VIRTUAL_ENV; poetry env info -p); then
+                unset pa_proj_file_ pa_proj_type_
+                return 1
+            fi
+            ;;
+
+        venv)
+            # stat(1) is not in POSIX, the most portable way to get the rights
+            # and owner of a file is to use ls and awk.
+            # shellcheck disable=SC2012
+            pa_proj_file_infos_="$(ls -ld "$pa_proj_file_" | \
+                awk '{print $1,$3;}')"
+
+            if [ "${pa_proj_file_infos_#* }" != "$(id -nu)" ]; then
+                _pyvenv_activate_safe_echo \
+                    "'$pa_proj_file_' is not owned by the current user" >&2
+                unset pa_proj_file_ pa_proj_type_ pa_proj_file_infos_
+                return 1
+            fi
+
+            if [ "${pa_proj_file_infos_% *}" != '-r--------' ]; then
+                _pyvenv_activate_safe_echo \
+                    "'$pa_proj_file_' has weak permission, expected read-only by owner (400)" >&2
+                unset pa_proj_file_ pa_proj_type_ pa_proj_file_infos_
+                return 1
+            fi
+
+            unset pa_proj_file_infos_
+
+            if ! IFS= read -r pa_venv_dir_ < "$pa_proj_file_"; then
+                _pyvenv_activate_safe_echo "unable to read '$pa_proj_file_'" >&2
+                unset pa_proj_file_ pa_proj_type_
+                return 1
+            fi
+
+            if [ "$pa_venv_dir_" = "${pa_venv_dir_#/}" ]; then
+                _pyvenv_activate_safe_echo "'$pa_venv_dir_' is not an absolute path" >&2
+                unset pa_proj_file_ pa_proj_type_ pa_venv_dir_
+                return 1
+            fi
+
+            _pyvenv_activate_safe_echo "$pa_venv_dir_"
+            unset pa_venv_dir_
+            ;;
+
+        *)
+            _pyvenv_activate_safe_echo \
+                "invalid python virtual environment project type $pa_proj_type_" >&2
+            unset pa_proj_file_ pa_proj_type_
+            return 1
+            ;;
+    esac
+
+    unset pa_proj_file_ pa_proj_type_
+    return 0
+}
+
+
+# Activate python virtual environment project in the current shell.
+#
+# Unlike `pipenv shell` or `poetry shell`, this function will not create a
 # sub-shell, but will activate the python virtual environment directly the
 # current shell.
 #
@@ -347,8 +438,8 @@ _pyvenv_activate_find_proj() {
 #                        file.
 #                        Default is to look for the file in the current
 #                        directory.
-#   [proj_type]: string: The type of the project to activate, either "pipenv"
-#                        or "poetry".
+#   [proj_type]: string: The type of the project to activate, "pipenv",
+#                        "poetry" or "venv".
 #                        If not set, it will be automatically detected.
 #   [venv_dir]:  string: The path to the virtual environment directory to
 #                        activate.
@@ -375,24 +466,24 @@ _pyvenv_activate_proj() {
     fi
 
     if [ -z "$pa_proj_type_" ]; then
-        if [ "${pa_proj_file_##*/}" = "Pipfile.lock" ]; then
+        pa_base_proj_file_name_="${pa_proj_file_##*/}"
+        if [ "$pa_base_proj_file_name_" = "Pipfile.lock" ]; then
             pa_proj_type_="pipenv"
-        elif [ "${pa_proj_file_##*/}" = "poetry.lock" ]; then
+        elif [ "$pa_base_proj_file_name_" = "poetry.lock" ]; then
             pa_proj_type_="poetry"
+        elif [ "$pa_base_proj_file_name_" = "$PYVENV_ACTIVATE_SETUP_FILE_NAME" ]; then
+            pa_proj_type_="venv"
         else
             _pyvenv_activate_safe_echo "unable to find python virtual environment project type for $pa_proj_file_" >&2
-            unset pa_proj_file_ pa_proj_type_ pa_venv_dir_
+            unset pa_proj_file_ pa_proj_type_ pa_venv_dir_ pa_base_proj_file_name_
             return 1
         fi
+        unset pa_base_proj_file_name_
     fi
 
     if [ -z "$pa_venv_dir_" ]; then
-        if [ "$pa_proj_type_" = "pipenv" ]; then
-            pa_venv_dir_="$(pipenv --venv)" || return 1
-        elif [ "$pa_proj_type_" = "poetry" ]; then
-            pa_venv_dir_="$(unset VIRTUAL_ENV && poetry env info -p)" || return 1
-        else
-            _pyvenv_activate_safe_echo "invalid python virtual environment project type $pa_proj_type_" >&2
+        if ! pa_venv_dir_="$(_pyvenv_activate_get_venv_dir \
+            "$pa_proj_file_" "$pa_proj_type_")"; then
             unset pa_proj_file_ pa_proj_type_ pa_venv_dir_
             return 1
         fi
@@ -426,7 +517,7 @@ _pyvenv_activate_proj() {
 
 # Activate python virtual environment in the current shell.
 #
-# Unlike `pipenv shell` or `poerty shell`, this function will not create a
+# Unlike `pipenv shell` or `poetry shell`, this function will not create a
 # sub-shell, but will activate the python virtual environment directly the
 # current shell.
 #
@@ -530,11 +621,8 @@ pyvenv_auto_activate_check_proj() {
     if [ -n "$pa_proj_file_" ] && [ -n "$pa_proj_type_" ] \
     && [ "$pa_proj_file_" != "$_PYVENV_AUTO_ACTIVATE_PROJ_FILE" ] \
     && [ -z "$VIRTUAL_ENV" ]; then
-        if [ "$pa_proj_type_" = "pipenv" ]; then
-            pa_venv_dir_="$(pipenv --venv 2>/dev/null)"
-        elif [ "$pa_proj_type_" = "poetry" ]; then
-            pa_venv_dir_="$(unset VIRTUAL_ENV && poetry env info -p 2>/dev/null)"
-        fi
+        pa_venv_dir_="$(_pyvenv_activate_get_venv_dir \
+            "$pa_proj_file_" "$pa_proj_type_" 2>/dev/null)"
 
         if [ -n "$pa_venv_dir_" ]; then
             # Activate the virtual environment if we have entered a new pipenv
