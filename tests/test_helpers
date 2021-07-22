@@ -164,7 +164,7 @@ th_pyvenv_setup_venv() {
 }
 
 th_activate_venv() {
-    env_dir="$1"
+    env_dir="${1:-$PWD}"
 
     if [ -n "$VIRTUAL_ENV" ]; then
         deactivate || return 1
@@ -234,17 +234,17 @@ tearDown() {
 # {{{ Auto activate functions
 
 th_auto_activate_check_proj_enable() {
-    _TH_AUTO_ACTIVATE_CHECK_PROJ_ACTIVE=1
+    _PYVENV_AUTO_ACTIVATE_ENABLED=1
 }
 
 th_auto_activate_check_proj_disable() {
-    unset _TH_AUTO_ACTIVATE_CHECK_PROJ_ACTIVE
+    unset _PYVENV_AUTO_ACTIVATE_ENABLED
 }
 
 th_auto_activate_check_proj_cd() {
     cd "$@" || return 1
 
-    if [ -n "$_TH_AUTO_ACTIVATE_CHECK_PROJ_ACTIVE" ]; then
+    if [ -n "$_PYVENV_AUTO_ACTIVATE_ENABLED" ]; then
         pyvenv_auto_activate_check_proj
     fi
 }
@@ -256,10 +256,20 @@ th_pyvenv_auto_activate_check_proj() {
         "th_auto_activate_check_proj_cd"
 }
 
+th_auto_activate_redefine_cd_enable() {
+    th_auto_activate_check_proj_enable
+    _pyvenv_auto_activate_enable_redefine_cd
+}
+
+th_auto_activate_redefine_cd_disable() {
+    _pyvenv_auto_activate_disable_redefine_cd
+    th_auto_activate_check_proj_disable
+}
+
 th_pyvenv_auto_activate_redefine_cd() {
     "th_test_pyvenv_auto_activate_$1" \
-        "_pyvenv_auto_activate_enable_redefine_cd" \
-        "_pyvenv_auto_activate_disable_redefine_cd" \
+        "th_auto_activate_redefine_cd_enable" \
+        "th_auto_activate_redefine_cd_disable" \
         "cd"
 }
 
