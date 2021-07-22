@@ -745,7 +745,7 @@ _pyvenv_auto_activate_enable_zsh() {
 #                   - chpwd: The Python virtual environment is checked and
 #                   activated when changing directory.
 #                   - default: The default mode, use prompt mode when
-#                   available, cd otherwise.
+#                   available, chpwd otherwise.
 #
 # Returns:
 #   0 on success, 1 on error.
@@ -769,6 +769,8 @@ pyvenv_auto_activate_enable() {
     else
         _pyvenv_auto_activate_enable_redefine_cd "$pa_mode_" || return 1
     fi
+
+    _PYVENV_AUTO_ACTIVATE_ENABLED=1
 
     unset pa_mode_
     return 0
@@ -820,12 +822,13 @@ _pyvenv_auto_activate_disable_zsh() {
 #   0 on success, 1 on error.
 pyvenv_auto_activate_disable() {
     if [ -n "$BASH_VERSION" ]; then
-        _pyvenv_auto_activate_disable_bash
+        _pyvenv_auto_activate_disable_bash || return 1
     elif [ -n "$ZSH_VERSION" ]; then
-        _pyvenv_auto_activate_disable_zsh
+        _pyvenv_auto_activate_disable_zsh || return 1
     else
-        _pyvenv_auto_activate_disable_redefine_cd
+        _pyvenv_auto_activate_disable_redefine_cd || return 1
     fi
+    unset _PYVENV_AUTO_ACTIVATE_ENABLED
 }
 
 # }}}
@@ -893,8 +896,17 @@ pyvenv_setup() {
         return 1
     fi
 
+    # Write setup file with right perms.
     _pyvenv_activate_safe_echo "$pa_venv_path_" > "$pa_setup_file_" || return 1
     chmod 400 "$pa_setup_file_" || return 1
+
+    # Set auto activate if it is enabled, there is a virtual env activated and
+    # if we are in the project.
+    if [ -n "$VIRTUAL_ENV" ] && \
+        [ -n "$_PYVENV_AUTO_ACTIVATE_ENABLED" ] && \
+        [ "${PWD##$pa_proj_path_}" != "$PWD" ]; then
+        export _PYVENV_AUTO_ACTIVATE_PROJ_FILE="$pa_setup_file_"
+    fi
 
     unset pa_venv_path_ pa_proj_path_ pa_setup_file_
 }
