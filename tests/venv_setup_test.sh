@@ -16,7 +16,47 @@ oneTimeSetUp() {
 }
 
 
-test_venv_setup_file_perms() {
+test_venv_setup_func() {
+    rm -f -- "$TEST_ENVS_B_SETUP_FILE"
+
+    # Create setup file in env B with absolute paths
+    pyvenv_setup "$TEST_ENVS_VENV/B/.pyvenv_venv" "$TEST_ENVS_VENV/B" || \
+        fail "unable to create setup file in env B with absolute paths"
+    test -r "$TEST_ENVS_B_SETUP_FILE" || \
+        fail "setup file in env B was not created"
+
+    rm -f -- "$TEST_ENVS_B_SETUP_FILE"
+
+    # Create setup file in env B with relative paths
+    cd -- "$TEST_ENVS_VENV/B" || fail "cd to env B"
+    pyvenv_setup ".pyvenv_venv" "." || \
+        fail "unable to create setup file in env B with relative paths"
+    test -r "$TEST_ENVS_B_SETUP_FILE" || \
+        fail "setup file in env B was not created"
+
+    rm -f -- "$TEST_ENVS_B_SETUP_FILE"
+
+    # Unable to setup file in env B with default paths without activated
+    # virtual environment
+    pyvenv_setup 2>/dev/null && \
+        fail "should not be able to create setup file in env B with default
+            paths without activated virtual environment"
+    test -r "$TEST_ENVS_B_SETUP_FILE" && \
+        fail "setup file in env B should not have been created"
+
+    # Create setup file in env B with default paths
+    th_activate_venv "$TEST_ENVS_VENV/B" || fail "activate env B"
+    pyvenv_setup || \
+        fail "unable to create setup file in env B with default paths"
+    test -r "$TEST_ENVS_B_SETUP_FILE" || \
+        fail "setup file in env B was not created"
+    deactivate
+
+    rm -f -- "$TEST_ENVS_B_SETUP_FILE"
+}
+
+
+test_venv_setup_file_activate_perms() {
     # Create setup file in env B
     cd -- "$TEST_ENVS_VENV/B" || fail "cd to env B"
     th_pyvenv_setup_venv || fail "setup in env B"
@@ -40,7 +80,7 @@ test_venv_setup_file_perms() {
 }
 
 
-test_venv_setup_abs_path() {
+test_venv_setup_file_activate_abs_path() {
     cd -- "$TEST_ENVS_VENV/B" || fail "cd to env B"
 
     # Set relative path in setup file
@@ -151,8 +191,9 @@ th_test_pyvenv_auto_activate_venv() {
 
 
 suite() {
-    suite_addTest 'test_venv_setup_file_perms'
-    suite_addTest 'test_venv_setup_abs_path'
+    suite_addTest 'test_venv_setup_func'
+    suite_addTest 'test_venv_setup_file_activate_perms'
+    suite_addTest 'test_venv_setup_file_activate_abs_path'
     suite_addTest 'test_venv_setup_in_virtual_env'
     th_pyvenv_auto_activate_suite 'venv'
 }

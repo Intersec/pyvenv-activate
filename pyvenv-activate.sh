@@ -39,6 +39,13 @@ else
     }
 fi
 
+# Get normalized absolute path of given directory.
+_pyvenv_activate_get_dir_abs_path() {
+    (
+        _pyvenv_activate_builtin_cd -P -- "$1" && pwd -P
+    )
+}
+
 # }}}
 # {{{ Pyvenv activate
 
@@ -851,12 +858,9 @@ pyvenv_auto_activate_disable() {
 #
 # Args:
 #   [venv_path]: string: The path to the virtual env to register.
-#                        It must be the absolute path of the activated
-#                        environment.
 #                        If not set, $VIRTUAL_ENV is used.
 #   [proj_path]: string: The path to the project where to store the virtual
 #                        environment path file.
-#                        It must be the absolute path of the project path.
 #                        If not set, use the current directory.
 # Returns:
 #   0 on success, 1 on error.
@@ -873,11 +877,13 @@ pyvenv_setup() {
         pa_venv_path_="$VIRTUAL_ENV"
     fi
 
-    if [ "$pa_venv_path_" = "${pa_venv_path_#/}" ]; then
-        _pyvenv_activate_safe_echo "'$pa_venv_path_' is not an absolute path" >&2
+    if ! pa_venv_abs_path_="$(_pyvenv_activate_get_dir_abs_path "$pa_venv_path_")"; then
+        _pyvenv_activate_safe_echo "unable to get absolute path of '$pa_venv_path_'" >&2
         unset pa_venv_path_ pa_proj_path_
         return 1
     fi
+    pa_venv_path_="$pa_venv_abs_path_"
+    unset pa_venv_abs_path_
 
     if ! [ -f "$pa_venv_path_/bin/activate" ]; then
         _pyvenv_activate_safe_echo "'$pa_venv_path_' is not a valid virtual environment" >&2
@@ -889,11 +895,13 @@ pyvenv_setup() {
         pa_proj_path_="$PWD"
     fi
 
-    if [ "$pa_proj_path_" = "${pa_proj_path_#/}" ]; then
-        _pyvenv_activate_safe_echo "'$pa_proj_path_' is not an absolute path" >&2
+    if ! pa_proj_abs_path_="$(_pyvenv_activate_get_dir_abs_path "$pa_proj_path_")"; then
+        _pyvenv_activate_safe_echo "unable to get absolute path of '$pa_proj_path_'" >&2
         unset pa_venv_path_ pa_proj_path_
         return 1
     fi
+    pa_proj_path_="$pa_proj_abs_path_"
+    unset pa_proj_abs_path_
 
     pa_setup_file_="$pa_proj_path_/$PYVENV_ACTIVATE_SETUP_FILE_NAME"
 
@@ -909,13 +917,14 @@ pyvenv_setup() {
 
     # Set auto activate if it is enabled, there is a virtual env activated and
     # if we are in the project.
+    pa_abs_pwd_="$(_pyvenv_activate_get_dir_abs_path "$PWD")"
     if [ -n "$VIRTUAL_ENV" ] && \
         [ -n "$_PYVENV_AUTO_ACTIVATE_ENABLED" ] && \
-        [ "${PWD##$pa_proj_path_}" != "$PWD" ]; then
+        [ "${pa_abs_pwd_##$pa_proj_path_}" != "$pa_abs_pwd_" ]; then
         export _PYVENV_AUTO_ACTIVATE_PROJ_FILE="$pa_setup_file_"
     fi
 
-    unset pa_venv_path_ pa_proj_path_ pa_setup_file_
+    unset pa_venv_path_ pa_proj_path_ pa_setup_file_ pa_abs_pwd_
 }
 
 # }}}
