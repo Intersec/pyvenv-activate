@@ -37,6 +37,7 @@ Of course, in order to load the different environments,
     * [Automatically](#automatically)
         * [Mode](#mode)
 * [Setup venv path file](#setup-venv-path-file)
+* [Pipenv activate](#pipenv-activate)
 * [Tests](#tests)
 
 ## Features
@@ -328,6 +329,15 @@ pauss@home: envs/B$ pyvenv_activate
 /home/pauss/envs/B/.venv/bin/python
 
 ```
+
+
+## Pipenv activate
+
+The first version of `pyvenv-activate` only supported `pipenv` and was called
+`pipenv-activate`.
+
+In order to keep the backward compatibility, the public function are kept, and
+some symlinks are done to the new files.
 
 ## Tests
 
