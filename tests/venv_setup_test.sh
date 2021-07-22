@@ -12,7 +12,7 @@ TEST_DIR="$(dirname -- "$TEST_SCRIPT")"
 
 oneTimeSetUp() {
     th_oneTimeSetUp || return 1
-    TEST_ENVS_B_SETUP_FILE="$TEST_ENVS_VENV/B/$PYVENV_ACTIVATE_SETUP_FILE_NAME"
+    TEST_ENVS_B_SETUP_FILE="$TEST_ENVS_VENV/B/$PYVENV_ACTIVATE_VENV_PATH_FILE_NAME"
 }
 
 
@@ -21,7 +21,7 @@ test_venv_setup_func() {
     rm -f -- "$TEST_ENVS_B_SETUP_FILE"
 
     # Create setup file in env B with absolute paths
-    pyvenv_setup "$TEST_ENVS_VENV/B/.pyvenv_venv" "$TEST_ENVS_VENV/B" || \
+    pyvenv_setup_venv_file_path "$TEST_ENVS_VENV/B/.pyvenv_venv" "$TEST_ENVS_VENV/B" || \
         fail "unable to create setup file in env B with absolute paths"
     test -r "$TEST_ENVS_B_SETUP_FILE" || \
         fail "setup file in env B was not created"
@@ -30,7 +30,7 @@ test_venv_setup_func() {
 
     # Create setup file in env B with relative paths
     cd -- "$TEST_ENVS_VENV/B" || fail "cd to env B"
-    pyvenv_setup ".pyvenv_venv" "." || \
+    pyvenv_setup_venv_file_path ".pyvenv_venv" "." || \
         fail "unable to create setup file in env B with relative paths"
     test -r "$TEST_ENVS_B_SETUP_FILE" || \
         fail "setup file in env B was not created"
@@ -39,7 +39,7 @@ test_venv_setup_func() {
 
     # Unable to setup file in env B with default paths without activated
     # virtual environment
-    pyvenv_setup 2>/dev/null && \
+    pyvenv_setup_venv_file_path 2>/dev/null && \
         fail "should not be able to create setup file in env B with default
             paths without activated virtual environment"
     test -r "$TEST_ENVS_B_SETUP_FILE" && \
@@ -47,7 +47,7 @@ test_venv_setup_func() {
 
     # Create setup file in env B with default paths
     th_activate_venv "$TEST_ENVS_VENV/B" || fail "activate env B"
-    pyvenv_setup || \
+    pyvenv_setup_venv_file_path || \
         fail "unable to create setup file in env B with default paths"
     test -r "$TEST_ENVS_B_SETUP_FILE" || \
         fail "setup file in env B was not created"
@@ -62,7 +62,7 @@ th_register_test test_venv_setup_file_activate_perms
 test_venv_setup_file_activate_perms() {
     # Create setup file in env B
     cd -- "$TEST_ENVS_VENV/B" || fail "cd to env B"
-    th_pyvenv_setup_venv || fail "setup in env B"
+    th_pyvenv_setup_venv_file_path || fail "setup in env B"
 
     # Set wrong perms to setup file
     chmod 644 "$TEST_ENVS_B_SETUP_FILE" || \
@@ -129,7 +129,7 @@ test_venv_setup_in_virtual_env() {
         fail "pyvenv_activate in env B without setup file"
 
     # Setup pyvenv with activated virtual env in env B
-    pyvenv_setup || fail "pyvenv_setup in env B with activated virtual env"
+    pyvenv_setup_venv_file_path || fail "pyvenv_setup in env B with activated virtual env"
 
     # pyvenv_activate should be ok and no op
     pyvenv_activate || fail "pyvenv_activate in env B"
@@ -176,7 +176,7 @@ test_venv_setup_auto_activate() {
         "$HOST_PYTHON_PATH" "$env_b_python_path"
 
     # Setup pyvenv with activated virtual env in env B
-    pyvenv_setup || fail "pyvenv_setup in env B with activated virtual env"
+    pyvenv_setup_venv_file_path || fail "pyvenv_setup in env B with activated virtual env"
     assertEquals "python path not equals to env B"\
         "$env_b_python_path" "$(th_get_python_path)"
 

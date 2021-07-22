@@ -285,7 +285,7 @@ test_pyvenv_activate_venv() {
 
     # Change directory to env A and check python path.
     cd -- "$TEST_ENVS_VENV/A" || fail "cd to env A"
-    th_pyvenv_setup_venv || fail "setup in env A"
+    th_pyvenv_setup_venv_file_path || fail "setup in env A"
     pyvenv_activate || fail "pyvenv_activate in env A"
     env_a_python_path="$(th_get_python_path)"
     assertNotEquals "python path not equals to host in env A"\
@@ -460,7 +460,7 @@ test_pyvenv_auto_activate_venv() {
     disable_cmd="$2"
     cd_cmd="$3"
 
-    th_pyvenv_setup_venv "$TEST_ENVS_VENV/A" || fail "setup in env A"
+    th_pyvenv_setup_venv_file_path "$TEST_ENVS_VENV/A" || fail "setup in env A"
 
     $enable_cmd || fail "enable auto activate"
 

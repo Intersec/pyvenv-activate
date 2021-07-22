@@ -190,7 +190,7 @@ test_pyvenv_activate_venv() {
     # Change directory to env C and check dotenv variables.
     # virtualenv should not load .env file.
     cd -- "$TEST_ENVS_VENV/C" || fail "cd to env C"
-    th_pyvenv_setup_venv || fail "setup in env C"
+    th_pyvenv_setup_venv_file_path || fail "setup in env C"
     pyvenv_activate || fail "pyvenv_activate in env C"
     assertNull "VAR A in env C" "$(th_get_env_var "VAR_A")"
     assertNull "VAR B in env C" "$(th_get_env_var "VAR_B")"
@@ -205,7 +205,7 @@ test_pyvenv_activate_venv() {
 
     # Change directory to env B and check dotenv variables.
     cd -- "$TEST_ENVS_VENV/B" || fail "cd to env B"
-    th_pyvenv_setup_venv || fail "setup in env B"
+    th_pyvenv_setup_venv_file_path || fail "setup in env B"
     pyvenv_activate || fail "pyvenv_activate in env B"
     assertNull "VAR A in env B" "$(th_get_env_var "VAR_A")"
     assertNull "VAR B in env B" "$(th_get_env_var "VAR_B")"
@@ -305,8 +305,8 @@ test_pyvenv_auto_activate_venv() {
     disable_cmd="$2"
     cd_cmd="$3"
 
-    th_pyvenv_setup_venv "$TEST_ENVS_VENV/A" || fail "setup in env A"
-    th_pyvenv_setup_venv "$TEST_ENVS_VENV/B" || fail "setup in env B"
+    th_pyvenv_setup_venv_file_path "$TEST_ENVS_VENV/A" || fail "setup in env A"
+    th_pyvenv_setup_venv_file_path "$TEST_ENVS_VENV/B" || fail "setup in env B"
 
     $enable_cmd || fail "enable auto activate"
 

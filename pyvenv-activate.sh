@@ -6,7 +6,7 @@
 
 # shellcheck disable=SC2034
 PYVENV_ACTIVATE_VERSION=2.0
-PYVENV_ACTIVATE_SETUP_FILE_NAME=.pyvenv_setup_path
+PYVENV_ACTIVATE_VENV_PATH_FILE_NAME=.pyvenv_venv_path
 
 # {{{ Helpers
 
@@ -348,9 +348,9 @@ _pyvenv_activate_find_proj() {
             break
         fi
 
-        pa_proj_file_="$pa_current_dir_/$PYVENV_ACTIVATE_SETUP_FILE_NAME"
+        pa_proj_file_="$pa_current_dir_/$PYVENV_ACTIVATE_VENV_PATH_FILE_NAME"
         if [ -r "$pa_proj_file_" ]; then
-            # Setup file has been found.
+            # Venv path file has been found.
             _pyvenv_activate_safe_echo "venv:$pa_proj_file_"
             break
         fi
@@ -495,7 +495,7 @@ _pyvenv_activate_proj() {
             pa_proj_type_="pipenv"
         elif [ "$pa_base_proj_file_name_" = "poetry.lock" ]; then
             pa_proj_type_="poetry"
-        elif [ "$pa_base_proj_file_name_" = "$PYVENV_ACTIVATE_SETUP_FILE_NAME" ]; then
+        elif [ "$pa_base_proj_file_name_" = "$PYVENV_ACTIVATE_VENV_PATH_FILE_NAME" ]; then
             pa_proj_type_="venv"
         else
             _pyvenv_activate_safe_echo "unable to find python virtual environment project type for $pa_proj_file_" >&2
@@ -847,12 +847,12 @@ pyvenv_auto_activate_disable() {
 
 # }}}
 # }}}
-# {{{ Pyvenv setup
+# {{{ Pyvenv setup venv file path
 
 # Setup pyvenv-activate to work with an existing python virtual environment.
 #
 # The virtual environment absolute path will be stored in a file named after
-# the variable $PYVENV_ACTIVATE_SETUP_FILE_NAME in the project directory.
+# the variable $PYVENV_ACTIVATE_VENV_PATH_FILE_NAME in the project directory.
 #
 # The file is created with read-only rights (400) for the owner.
 #
@@ -864,7 +864,7 @@ pyvenv_auto_activate_disable() {
 #                        If not set, use the current directory.
 # Returns:
 #   0 on success, 1 on error.
-pyvenv_setup() {
+pyvenv_setup_venv_file_path() {
     pa_venv_path_="$1"
     pa_proj_path_="$2"
 
@@ -903,17 +903,19 @@ pyvenv_setup() {
     pa_proj_path_="$pa_proj_abs_path_"
     unset pa_proj_abs_path_
 
-    pa_setup_file_="$pa_proj_path_/$PYVENV_ACTIVATE_SETUP_FILE_NAME"
+    pa_venv_file_="$pa_proj_path_/$PYVENV_ACTIVATE_VENV_PATH_FILE_NAME"
 
-    if [ -r "$pa_setup_file_" ]; then
-        _pyvenv_activate_safe_echo "'$pa_setup_file_' is already present, remove it before calling pyvenv_setup() again" >&2
-        unset pa_venv_path_ pa_proj_path_ pa_setup_file_
+    if [ -r "$pa_venv_file_" ]; then
+        _pyvenv_activate_safe_echo \
+            "'$pa_venv_file_' is already present, remove it before" \
+            "calling pyvenv_setup_venv_file_path() again" >&2
+        unset pa_venv_path_ pa_proj_path_ pa_venv_file_
         return 1
     fi
 
-    # Write setup file with right perms.
-    _pyvenv_activate_safe_echo "$pa_venv_path_" > "$pa_setup_file_" || return 1
-    chmod 400 "$pa_setup_file_" || return 1
+    # Write venv file path with right perms.
+    _pyvenv_activate_safe_echo "$pa_venv_path_" > "$pa_venv_file_" || return 1
+    chmod 400 "$pa_venv_file_" || return 1
 
     # Set auto activate if it is enabled, there is a virtual env activated and
     # if we are in the project.
@@ -921,10 +923,10 @@ pyvenv_setup() {
     if [ -n "$VIRTUAL_ENV" ] && \
         [ -n "$_PYVENV_AUTO_ACTIVATE_ENABLED" ] && \
         [ "${pa_abs_pwd_##$pa_proj_path_}" != "$pa_abs_pwd_" ]; then
-        export _PYVENV_AUTO_ACTIVATE_PROJ_FILE="$pa_setup_file_"
+        export _PYVENV_AUTO_ACTIVATE_PROJ_FILE="$pa_venv_file_"
     fi
 
-    unset pa_venv_path_ pa_proj_path_ pa_setup_file_ pa_abs_pwd_
+    unset pa_venv_path_ pa_proj_path_ pa_venv_file_ pa_abs_pwd_
 }
 
 # }}}

@@ -231,8 +231,8 @@ test_pyvenv_activate_poetry() {
 
 th_register_test test_pyvenv_activate_venv
 test_pyvenv_activate_venv() {
-    th_pyvenv_setup_venv "$TEST_ENVS_VENV/A" || fail "setup in env A"
-    th_pyvenv_setup_venv "$TEST_ENVS_VENV/B" || fail "setup in env B"
+    th_pyvenv_setup_venv_file_path "$TEST_ENVS_VENV/A" || fail "setup in env A"
+    th_pyvenv_setup_venv_file_path "$TEST_ENVS_VENV/B" || fail "setup in env B"
 
     # Check test environment is ok.
     assertEquals "check host env" "$HOST_PYTHON_PATH" "$(th_get_python_path)"
@@ -424,8 +424,8 @@ test_pyvenv_auto_activate_venv() {
     disable_cmd="$2"
     cd_cmd="$3"
 
-    th_pyvenv_setup_venv "$TEST_ENVS_VENV/A" || fail "setup in env A"
-    th_pyvenv_setup_venv "$TEST_ENVS_VENV/B" || fail "setup in env B"
+    th_pyvenv_setup_venv_file_path "$TEST_ENVS_VENV/A" || fail "setup in env A"
+    th_pyvenv_setup_venv_file_path "$TEST_ENVS_VENV/B" || fail "setup in env B"
 
     $enable_cmd || fail "enable auto activate"
 

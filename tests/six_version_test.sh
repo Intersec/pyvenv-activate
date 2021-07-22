@@ -110,7 +110,7 @@ th_register_test test_pyvenv_activate_venv
 test_pyvenv_activate_venv() {
     # Change directory to env A and check six version.
     cd -- "$TEST_ENVS_VENV/A" || fail "cd to env A"
-    th_pyvenv_setup_venv || fail "setup in env A"
+    th_pyvenv_setup_venv_file_path || fail "setup in env A"
     pyvenv_activate || fail "pyvenv_activate in env A"
     assertEquals "six version in env A" "$ENV_1_SIX_VERSION" \
         "$(get_six_version)"
@@ -118,7 +118,7 @@ test_pyvenv_activate_venv() {
 
     # Change directory to env B and check six version.
     cd -- "$TEST_ENVS_VENV/B" || fail "cd to env B"
-    th_pyvenv_setup_venv || fail "setup in env B"
+    th_pyvenv_setup_venv_file_path || fail "setup in env B"
     pyvenv_activate || fail "pyvenv_activate in env B"
     assertEquals "six version in env B" "$ENV_2_SIX_VERSION" \
         "$(get_six_version)"
@@ -182,8 +182,8 @@ test_pyvenv_auto_activate_venv() {
     disable_cmd="$2"
     cd_cmd="$3"
 
-    th_pyvenv_setup_venv "$TEST_ENVS_VENV/A" || fail "setup in env A"
-    th_pyvenv_setup_venv "$TEST_ENVS_VENV/B" || fail "setup in env A"
+    th_pyvenv_setup_venv_file_path "$TEST_ENVS_VENV/A" || fail "setup in env A"
+    th_pyvenv_setup_venv_file_path "$TEST_ENVS_VENV/B" || fail "setup in env A"
 
     $enable_cmd || fail "enable auto activate"
 

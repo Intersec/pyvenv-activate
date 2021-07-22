@@ -156,11 +156,11 @@ th_get_env_var() {
     $cmd_prefix python3 -c "import os; print(os.environ.get('$env_var', ''))"
 }
 
-th_pyvenv_setup_venv() {
+th_pyvenv_setup_venv_file_path() {
     env_dir="${1:-$PWD}"
 
-    rm -f -- "$env_dir/$PYVENV_ACTIVATE_SETUP_FILE_NAME"
-    pyvenv_setup "$env_dir/.pyvenv_venv" "$env_dir"
+    rm -f -- "$env_dir/$PYVENV_ACTIVATE_VENV_PATH_FILE_NAME"
+    pyvenv_setup_venv_file_path "$env_dir/.pyvenv_venv" "$env_dir"
 }
 
 th_activate_venv() {
