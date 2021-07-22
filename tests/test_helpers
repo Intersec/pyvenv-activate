@@ -173,6 +173,12 @@ th_activate_venv() {
     . "$env_dir/.pyvenv_venv/bin/activate"
 }
 
+_TH_PYVENV_TESTS=""
+th_register_test() {
+    _TH_PYVENV_TESTS="$_TH_PYVENV_TESTS $1"
+}
+
+
 # }}}
 # {{{ Default setup/teardown functions
 
@@ -230,6 +236,18 @@ tearDown() {
     th_tearDown
 }
 
+th_suite() {
+    for pyvenv_test in $_TH_PYVENV_TESTS; do
+        if [ -n "$pyvenv_test" ]; then
+            suite_addTest "$pyvenv_test"
+        fi
+    done
+}
+suite() {
+    th_suite
+}
+
+
 # }}}
 # {{{ Auto activate functions
 
@@ -249,8 +267,8 @@ th_auto_activate_check_proj_cd() {
     fi
 }
 
-th_pyvenv_auto_activate_check_proj() {
-    "th_test_pyvenv_auto_activate_$1" \
+th_auto_activate_check_proj() {
+    "$1" \
         "th_auto_activate_check_proj_enable" \
         "th_auto_activate_check_proj_disable" \
         "th_auto_activate_check_proj_cd"
@@ -266,8 +284,8 @@ th_auto_activate_redefine_cd_disable() {
     th_auto_activate_check_proj_disable
 }
 
-th_pyvenv_auto_activate_redefine_cd() {
-    "th_test_pyvenv_auto_activate_$1" \
+th_auto_activate_redefine_cd() {
+    "$1" \
         "th_auto_activate_redefine_cd_enable" \
         "th_auto_activate_redefine_cd_disable" \
         "cd"
@@ -285,15 +303,15 @@ th_auto_activate_bash_cd() {
     unset _saved_ifs
 }
 
-th_pyvenv_auto_activate_bash_prompt() {
-    "th_test_pyvenv_auto_activate_$1" \
+th_auto_activate_bash_prompt() {
+    "$1" \
         "pyvenv_auto_activate_enable prompt" \
         "pyvenv_auto_activate_disable" \
         "th_auto_activate_bash_cd"
 }
 
-th_pyvenv_auto_activate_bash_chpwd() {
-    "th_test_pyvenv_auto_activate_$1" \
+th_auto_activate_bash_chpwd() {
+    "$1" \
         "pyvenv_auto_activate_enable chpwd" \
         "pyvenv_auto_activate_disable" \
         "th_auto_activate_bash_cd"
@@ -313,46 +331,44 @@ th_auto_activate_zsh_cd() {
     done
 }
 
-th_pyvenv_auto_activate_zsh_prompt() {
-    "th_test_pyvenv_auto_activate_$1" \
+th_auto_activate_zsh_prompt() {
+    "$1" \
         "pyvenv_auto_activate_enable prompt" \
         "pyvenv_auto_activate_disable" \
         "th_auto_activate_zsh_cd"
 }
 
-th_pyvenv_auto_activate_zsh_chpwd() {
-    "th_test_pyvenv_auto_activate_$1" \
+th_auto_activate_zsh_chpwd() {
+    "$1" \
         "pyvenv_auto_activate_enable chpwd" \
         "pyvenv_auto_activate_disable" \
         "th_auto_activate_zsh_cd"
 }
 
-th_pyvenv_add_auto_activate_test() {
-    test_venv_type="$1"
-    test_func="$2"
+th_build_auto_activate_test() {
+    test_func="$1"
+    test_type="$2"
 
-    eval "test_pyvenv_auto_activate_${test_func}_${test_venv_type}() {
-        th_pyvenv_auto_activate_$test_func \"$test_venv_type\"
-    }
-    suite_addTest 'test_pyvenv_auto_activate_${test_func}_${test_venv_type}'
-    "
+    eval "${test_func}_${test_type}() {
+        th_auto_activate_$test_type \"$test_func\"
+    }"
+
+    th_register_test "${test_func}_${test_type}"
 }
 
-th_pyvenv_auto_activate_suite() {
-    for test_venv_type in "$@"; do
-        th_pyvenv_add_auto_activate_test "$test_venv_type" "check_proj"
-        th_pyvenv_add_auto_activate_test "$test_venv_type" "redefine_cd"
+th_register_auto_activate_tests() {
+    th_build_auto_activate_test "$1" "check_proj"
+    th_build_auto_activate_test "$1" "redefine_cd"
 
-        if [ -n "$BASH_VERSION" ]; then
-            th_pyvenv_add_auto_activate_test "$test_venv_type" "bash_prompt"
-            th_pyvenv_add_auto_activate_test "$test_venv_type" "bash_chpwd"
-        fi
+    if [ -n "$BASH_VERSION" ]; then
+        th_build_auto_activate_test "$1" "bash_prompt"
+        th_build_auto_activate_test "$1" "bash_chpwd"
+    fi
 
-        if [ -n "$ZSH_VERSION" ]; then
-            th_pyvenv_add_auto_activate_test "$test_venv_type" "zsh_prompt"
-            th_pyvenv_add_auto_activate_test "$test_venv_type" "zsh_chpwd"
-        fi
-    done
+    if [ -n "$ZSH_VERSION" ]; then
+        th_build_auto_activate_test "$1" "zsh_prompt"
+        th_build_auto_activate_test "$1" "zsh_chpwd"
+    fi
 }
 
 # }}}

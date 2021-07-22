@@ -19,6 +19,7 @@ setUp() {
 }
 
 
+th_register_test test_pipenv_run
 test_pipenv_run() {
     # Check test environment is ok.
     assertNull "check NULL host venv" "$(th_get_pipenv_venv)"
@@ -108,6 +109,7 @@ test_pipenv_run() {
 }
 
 
+th_register_test test_poetry_run
 test_poetry_run() {
     # Check test environment is ok.
     assertNull "check NULL host venv" "$(th_get_poetry_venv)"
@@ -133,6 +135,7 @@ test_poetry_run() {
 }
 
 
+th_register_test test_pyvenv_activate_pipenv
 test_pyvenv_activate_pipenv() {
     # Check test environment is ok.
     assertEquals "check host env" "$HOST_PYTHON_PATH" "$(th_get_python_path)"
@@ -242,6 +245,7 @@ test_pyvenv_activate_pipenv() {
 }
 
 
+th_register_test test_pyvenv_activate_poetry
 test_pyvenv_activate_poetry() {
     # Check test environment is ok.
     assertEquals "check host env" "$HOST_PYTHON_PATH" "$(th_get_python_path)"
@@ -274,6 +278,7 @@ test_pyvenv_activate_poetry() {
 }
 
 
+th_register_test test_pyvenv_activate_venv
 test_pyvenv_activate_venv() {
     # Check test environment is ok.
     assertEquals "check host env" "$HOST_PYTHON_PATH" "$(th_get_python_path)"
@@ -307,7 +312,8 @@ test_pyvenv_activate_venv() {
 }
 
 
-th_test_pyvenv_auto_activate_pipenv() {
+th_register_auto_activate_tests test_pyvenv_auto_activate_pipenv
+test_pyvenv_auto_activate_pipenv() {
     enable_cmd="$1"
     disable_cmd="$2"
     cd_cmd="$3"
@@ -410,7 +416,8 @@ th_test_pyvenv_auto_activate_pipenv() {
 }
 
 
-th_test_pyvenv_auto_activate_poetry() {
+th_register_auto_activate_tests test_pyvenv_auto_activate_poetry
+test_pyvenv_auto_activate_poetry() {
     enable_cmd="$1"
     disable_cmd="$2"
     cd_cmd="$3"
@@ -447,7 +454,8 @@ th_test_pyvenv_auto_activate_poetry() {
 }
 
 
-th_test_pyvenv_auto_activate_venv() {
+th_register_auto_activate_tests test_pyvenv_auto_activate_venv
+test_pyvenv_auto_activate_venv() {
     enable_cmd="$1"
     disable_cmd="$2"
     cd_cmd="$3"
@@ -483,16 +491,6 @@ th_test_pyvenv_auto_activate_venv() {
     $cd_cmd -- "$TEST_ENVS_TMPDIR" || fail "cd to envs tmpdir"
 
     $disable_cmd || fail "disable auto activate"
-}
-
-
-suite() {
-    suite_addTest 'test_pipenv_run'
-    suite_addTest 'test_poetry_run'
-    suite_addTest 'test_pyvenv_activate_pipenv'
-    suite_addTest 'test_pyvenv_activate_poetry'
-    suite_addTest 'test_pyvenv_activate_venv'
-    th_pyvenv_auto_activate_suite 'pipenv' 'poetry' 'venv'
 }
 
 

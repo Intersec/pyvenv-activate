@@ -16,6 +16,7 @@ oneTimeSetUp() {
 }
 
 
+th_register_test test_venv_setup_func
 test_venv_setup_func() {
     rm -f -- "$TEST_ENVS_B_SETUP_FILE"
 
@@ -56,6 +57,7 @@ test_venv_setup_func() {
 }
 
 
+th_register_test test_venv_setup_file_activate_perms
 test_venv_setup_file_activate_perms() {
     # Create setup file in env B
     cd -- "$TEST_ENVS_VENV/B" || fail "cd to env B"
@@ -80,6 +82,7 @@ test_venv_setup_file_activate_perms() {
 }
 
 
+th_register_test test_venv_setup_file_activate_abs_path
 test_venv_setup_file_activate_abs_path() {
     cd -- "$TEST_ENVS_VENV/B" || fail "cd to env B"
 
@@ -106,6 +109,7 @@ test_venv_setup_file_activate_abs_path() {
 }
 
 
+th_register_test test_venv_setup_in_virtual_env
 test_venv_setup_in_virtual_env() {
     rm -f -- "$TEST_ENVS_B_SETUP_FILE"
     assertEquals "check host env" "$HOST_PYTHON_PATH" "$(th_get_python_path)"
@@ -145,7 +149,8 @@ test_venv_setup_in_virtual_env() {
 }
 
 
-th_test_pyvenv_auto_activate_venv() {
+th_register_auto_activate_tests test_venv_setup_auto_activate
+test_venv_setup_auto_activate() {
     enable_cmd="$1"
     disable_cmd="$2"
     cd_cmd="$3"
@@ -187,15 +192,6 @@ th_test_pyvenv_auto_activate_venv() {
     $cd_cmd -- "$TEST_ENVS_VENV" || fail "cd to envs tmpdir"
 
     $disable_cmd || fail "disable auto activate"
-}
-
-
-suite() {
-    suite_addTest 'test_venv_setup_func'
-    suite_addTest 'test_venv_setup_file_activate_perms'
-    suite_addTest 'test_venv_setup_file_activate_abs_path'
-    suite_addTest 'test_venv_setup_in_virtual_env'
-    th_pyvenv_auto_activate_suite 'venv'
 }
 
 

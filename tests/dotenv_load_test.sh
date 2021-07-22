@@ -34,6 +34,7 @@ setUp() {
 }
 
 
+th_register_test test_pipenv_run
 test_pipenv_run() {
     # Change directory to env C and check dotenv variables.
     cd -- "$TEST_ENVS_PIPENV/C" || fail "cd to env C"
@@ -61,6 +62,7 @@ test_pipenv_run() {
 }
 
 
+th_register_test test_poetry_run
 test_poetry_run() {
     # Change directory to env C and check dotenv variables.
     # Poetry should not load .env file.
@@ -89,6 +91,7 @@ test_poetry_run() {
 }
 
 
+th_register_test test_venv_manual
 test_venv_manual() {
     # Activate env C and check dotenv variables.
     # virtualenv should not load .env file.
@@ -117,6 +120,7 @@ test_venv_manual() {
 }
 
 
+th_register_test test_pyvenv_activate_pipenv
 test_pyvenv_activate_pipenv() {
     # Change directory to env C and check dotenv variables.
     cd -- "$TEST_ENVS_PIPENV/C" || fail "cd to env C"
@@ -148,6 +152,7 @@ test_pyvenv_activate_pipenv() {
 }
 
 
+th_register_test test_pyvenv_activate_poetry
 test_pyvenv_activate_poetry() {
     # Change directory to env C and check dotenv variables.
     # Poetry should not load .env file.
@@ -180,6 +185,7 @@ test_pyvenv_activate_poetry() {
 }
 
 
+th_register_test test_pyvenv_activate_venv
 test_pyvenv_activate_venv() {
     # Change directory to env C and check dotenv variables.
     # virtualenv should not load .env file.
@@ -214,7 +220,8 @@ test_pyvenv_activate_venv() {
 }
 
 
-th_test_pyvenv_auto_activate_pipenv() {
+th_register_auto_activate_tests test_pyvenv_auto_activate_pipenv
+test_pyvenv_auto_activate_pipenv() {
     enable_cmd="$1"
     disable_cmd="$2"
     cd_cmd="$3"
@@ -252,7 +259,8 @@ th_test_pyvenv_auto_activate_pipenv() {
 }
 
 
-th_test_pyvenv_auto_activate_poetry() {
+th_register_auto_activate_tests test_pyvenv_auto_activate_poetry
+test_pyvenv_auto_activate_poetry() {
     enable_cmd="$1"
     disable_cmd="$2"
     cd_cmd="$3"
@@ -291,7 +299,8 @@ th_test_pyvenv_auto_activate_poetry() {
 }
 
 
-th_test_pyvenv_auto_activate_venv() {
+th_register_auto_activate_tests test_pyvenv_auto_activate_venv
+test_pyvenv_auto_activate_venv() {
     enable_cmd="$1"
     disable_cmd="$2"
     cd_cmd="$3"
@@ -330,17 +339,6 @@ th_test_pyvenv_auto_activate_venv() {
     $cd_cmd -- "$TEST_ENVS_TMPDIR" || fail "cd to envs tmpdir"
 
     $disable_cmd || fail "disable auto activate"
-}
-
-
-suite() {
-    suite_addTest 'test_pipenv_run'
-    suite_addTest 'test_poetry_run'
-    suite_addTest 'test_venv_manual'
-    suite_addTest 'test_pyvenv_activate_pipenv'
-    suite_addTest 'test_pyvenv_activate_poetry'
-    suite_addTest 'test_pyvenv_activate_venv'
-    th_pyvenv_auto_activate_suite 'pipenv' 'poetry' 'venv'
 }
 
 
