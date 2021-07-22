@@ -7,8 +7,9 @@
 or automatically activate and deactivate the Python virtual environment of
 projects within the current shell.
 
-It currently supports [Pipenv](https://github.com/pypa/pipenv) and
-[Poetry](https://github.com/python-poetry/poetry) projects.
+It currently supports [Pipenv](https://github.com/pypa/pipenv),
+[Poetry](https://github.com/python-poetry/poetry), and
+[manual virtual environment](#setup-venv-path-file) projects.
 
 Unlike `pipenv shell` or `poetry shell`, the virtual environment is directly
 loaded in the current Shell environment and thus it will not start a
@@ -19,7 +20,7 @@ or `pipenv shell`, when a `.env` is present, it will be loaded when the
 virtual environment is activated.
 
 Of course, in order to load the different environments,
-[Pipenv](https://github.com/pypa/pipenv) and/or
+[Pipenv](https://github.com/pypa/pipenv) or
 [Poetry](https://github.com/python-poetry/poetry) must be installed first.
 
 
@@ -35,6 +36,7 @@ Of course, in order to load the different environments,
     * [Manually](#manually)
     * [Automatically](#automatically)
         * [Mode](#mode)
+* [Setup venv path file](#setup-venv-path-file)
 * [Tests](#tests)
 
 ## Features
@@ -288,6 +290,43 @@ It can take three different values:
 Example:
 ```shell
 pyvenv_auto_activate_enable chpwd
+```
+
+## Setup venv path file
+
+It is possible to use `pyvenv-activate` with projects that use
+[venv](https://docs.python.org/3/tutorial/venv.html) or
+[virtualenv](https://virtualenv.pypa.io/en/latest/).
+
+In order to work, `pyvenv-activate` needs to know where to find the virtual
+environment directory.
+
+This is done by creating a special file `.pyvenv_venv_path` in the project
+directory using the function `pyvenv_setup_venv_file_path`.
+
+`pyvenv_setup_venv_file_path` takes two optional arguments:
+* `venv_path`: The path to the virtual env to register.
+               If not set, `$VIRTUAL_ENV` is used.
+* `proj_path`: The path to the project where to store the virtual environment
+               path file.
+               If not set, use the current directory.
+
+
+Example:
+```console
+pauss@home: envs/B$ virtualenv .venv
+created virtual environment CPython3.8.2.final.0-64 in 165ms
+  creator CPython3Posix(dest=/tmp/test_pyvenv_path/B/.env, clear=False, no_vcs_ignore=False, global=False)
+  seeder FromAppData(download=False, pip=bundle, setuptools=bundle, wheel=bundle, via=copy, app_data_dir=/home/pauss/.local/share/virtualenv)
+    added seed packages: pip==21.0.1, setuptools==57.0.0, wheel==0.36.2
+  activators BashActivator,CShellActivator,FishActivator,PowerShellActivator,PythonActivator,XonshActivator
+pauss@home: envs/B$ pyvenv_setup_venv_file_path .venv
+pauss@home: envs/B$ ls -a
+.  ..  .pyvenv_venv_path  .venv
+pauss@home: envs/B$ pyvenv_activate
+(.venv) pauss@home: envs/B$ which python
+/home/pauss/envs/B/.venv/bin/python
+
 ```
 
 ## Tests
