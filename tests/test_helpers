@@ -167,7 +167,8 @@ th_activate_venv() {
     env_dir="${1:-$PWD}"
 
     if [ -n "$VIRTUAL_ENV" ]; then
-        deactivate || return 1
+        deactivate nondestructive || return 1
+        unset -f deactivate
     fi
 
     . "$env_dir/.pyvenv_venv/bin/activate"
@@ -221,7 +222,8 @@ th_setUp() {
 
     # Deactivate the previous virtual env if any.
     if [ -n "$VIRTUAL_ENV" ]; then
-        deactivate || return 1
+        deactivate nondestructive || return 1
+        unset -f deactivate
     fi
 }
 setUp() {

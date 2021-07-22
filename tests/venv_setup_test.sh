@@ -51,7 +51,8 @@ test_venv_setup_func() {
         fail "unable to create setup file in env B with default paths"
     test -r "$TEST_ENVS_B_SETUP_FILE" || \
         fail "setup file in env B was not created"
-    deactivate
+    deactivate nondestructive
+    unset -f deactivate
 
     rm -f -- "$TEST_ENVS_B_SETUP_FILE"
 }
