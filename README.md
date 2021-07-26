@@ -1,7 +1,7 @@
 # Pyvenv activate
 
-[![Build Status](https://dev.azure.com/nicolaspauss/nicolaspauss/_apis/build/status/Intersec.pipenv-activate?branchName=master)](https://dev.azure.com/nicolaspauss/nicolaspauss/_build/latest?definitionId=3&branchName=master)
-[![License](https://img.shields.io/github/license/Intersec/pipenv-activate)](https://github.com/Intersec/pipenv-activate/blob/master/LICENSE)
+[![Build Status](https://dev.azure.com/nicolaspauss/nicolaspauss/_apis/build/status/Intersec.pyvenv-activate?branchName=master)](https://dev.azure.com/nicolaspauss/nicolaspauss/_build/latest?definitionId=5&branchName=master)
+[![License](https://img.shields.io/github/license/Intersec/pyvenv-activate)](https://github.com/Intersec/pyvenv-activate/blob/master/LICENSE)
 
 `pyvenv-activate.sh` is a POSIX shell script containing functions to manually
 or automatically activate and deactivate the Python virtual environment of
