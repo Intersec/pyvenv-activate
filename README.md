@@ -12,12 +12,12 @@ It currently supports [Pipenv](https://github.com/pypa/pipenv),
 [manual virtual environment](#setup-venv-path-file) projects.
 
 Unlike `pipenv shell` or `poetry shell`, the virtual environment is directly
-loaded in the current Shell environment and thus it will not start a
-new sub-shell when the virtual environment is activated.
+loaded in the current Shell environment and thus it doe not start a new
+sub-shell when the virtual environment is activated.
 
-For [Pipenv](https://github.com/pypa/pipenv) projects, similar to `pipenv run`
-or `pipenv shell`, when a `.env` is present, it will be loaded when the
-virtual environment is activated.
+For [Pipenv](https://github.com/pypa/pipenv) projects, similarly to
+`pipenv run` or `pipenv shell`, when a `.env` is present, it is loaded when
+the virtual environment is activated.
 
 Of course, in order to load the different environments,
 [Pipenv](https://github.com/pypa/pipenv) or
@@ -42,16 +42,16 @@ Of course, in order to load the different environments,
 
 ## Features
 
-* Load the virtual environment within the current shell.
-* Simple functions for virtual environment activation/deactivation.
+* Load the virtual environment within the current shell
+* Simple functions for virtual environment activation/deactivation
 * Automatic virtual environment activation/deactivation when entering or
-  exiting a Python virtual environment project.
+  exiting a Python virtual environment project
 * For [Pipenv](https://github.com/pypa/pipenv) projects:
-    * Automatically load `.env` file.
+    * Automatically load `.env` file
     * Respect [Pipenv configuration environment variables](
 https://pipenv.pypa.io/en/latest/advanced/#configuration-with-environment-variables)
-(`PIPENV_MAX_DEPTH`, `PIPENV_DOTENV_LOCATION`, ...).
-* Works with every POSIX shells (bash, zsh, ksh, ...).
+(`PIPENV_MAX_DEPTH`, `PIPENV_DOTENV_LOCATION`, ...)
+* Works with every POSIX shells (bash, zsh, ksh, ...)
 
 ## Installation
 
@@ -92,12 +92,14 @@ is the directory with custom plugins of oh-my-zsh ([read more](https://github.co
 git clone "https://github.com/Intersec/pipenv-activate.git" "$ZSH_CUSTOM/plugins/pyvenv-activate"
 ```
 
-Then add `pyvenv-activate` to the list of plugins in your ``.zshrc``. Make sure it is **before** the line `source $ZSH/oh-my-zsh.sh`:
+Then, add `pyvenv-activate` to the list of plugins in your ``.zshrc``.
+Make sure you insert it **before** the line `source $ZSH/oh-my-zsh.sh`:
 ```zsh
 plugins=(... pyvenv-activate)
 ```
 
-To enable the automatic activation, add this line **after** the line `source $ZSH/oh-my-zsh.sh`:
+To enable automatic activation, add this line **after** the line
+`source $ZSH/oh-my-zsh.sh`:
 ```zsh
 pyvenv_auto_activate_enable # Optional, enable auto activate, see below
 ```
@@ -113,12 +115,14 @@ is the directory with custom plugins of oh-my-bash ([read more](https://github.c
 git clone "https://github.com/Intersec/pipenv-activate.git" "$OSH_CUSTOM/plugins/pyvenv-activate"
 ```
 
-Then add `pyvenv-activate` to the list of plugins in your ``.bashrc``. Make sure it is **before** the line `source $OSH/oh-my-bash.sh`:
+Then, add `pyvenv-activate` to the list of plugins in your ``.bashrc``.
+Make sure you insert it **before** the line `source $OSH/oh-my-bash.sh`:
 ```bash
 plugins=(... pyvenv-activate)
 ```
 
-To enable the automatic activation, add this line **after** the line `source $ZSH/oh-my-bash.sh`:
+To enable automatic activation, add this line **after** the line
+`source $ZSH/oh-my-bash.sh`:
 ```bash
 pyvenv_auto_activate_enable # Optional, enable auto activate, see below
 ```
@@ -148,8 +152,7 @@ the current shell manually with the function `pyvenv_activate`.
 This works the same way as running `pipenv shell`, but no sub-shells are
 created.
 
-To deactivate the virtual environment, you will need to run
-`pyvenv_deactivate`.
+To deactivate the virtual environment, you need to run `pyvenv_deactivate`.
 
 Example:
 ```console
@@ -209,7 +212,7 @@ pauss@home: envs/C$
 the virtual environment when entering or exiting a Python virtual environment
 project.
 
-In order to enable it, you will need call the function
+In order to enable it, you need to call the function
 `pyvenv_auto_activate_enable` in the interactive configuration file of your
 shell (`.bashrc` for bash, `.zshrc` for zsh, ...).
 
@@ -262,29 +265,30 @@ pauss@home: envs$
 For Bash and Zsh, by default, we check if we have entered or exited a Python
 virtual environment project on each prompt.
 
-This is useful because it covers the case when we are changing the current
-directory, and when we are creating a new Python virtual environment project.
+This is useful because it covers the case when when we change from one
+directory to another, and when we create a new Python virtual environment
+project.
 
 Checking if we are in a Python virtual environment project is pretty fast, so
-it is normally not an issue to do it every prompt.
+checking this on every prompt is usually not an issue.
 
-For other POSIX shells, unfortunately, we don't have a hook that can be run
+For other POSIX shells, unfortunately, we don't have a hook that can be run on
 every prompt.
-So, in order to still have access to the automatic activation, we redefine the
-command `cd` to check the Python virtual environment project when changing the
-current directory.
+So, in order to still have access to automatic activation, we redefine the
+command `cd` to check the Python virtual environment project we change from
+one directory to another.
 
 If you don't want to check the Python virtual environment project on every
-prompt for Bash and Zsh, and only do the check when changing the current
-directory, `pyvenv_auto_activate_enable` actually takes an optional argument
-which is the mode to use.
+prompt for Bash and Zsh, and only do the check when we change from one
+directory to another, `pyvenv_auto_activate_enable` actually takes an optional
+argument which is the mode to use.
 
 It can take three different values:
 * `prompt`: Check the Python virtual environment project on every prompt. This
             is the default for Bash and Zsh. It is not available for other
             POSIX shells.
-* `chpwd`: Check the Python virtual environment project when changing the
-           current directory.
+* `chpwd`: Check the Python virtual environment project we change from one
+           directory to another.
            This is the default for POSIX shells other than Bash and Zsh.
 * `default`: Use the best mode for the current shell.
 
@@ -336,16 +340,15 @@ pauss@home: envs/B$ pyvenv_activate
 The first version of `pyvenv-activate` only supported `pipenv` and was called
 `pipenv-activate`.
 
-In order to keep the backward compatibility, the public function are kept, and
-some symlinks are done to the new files.
+In order to keep backward compatibility, the public functions are kept, and
+some symlinks to the new files are created.
 
 ## Tests
 
-We are using the unit test framework
+We use the unit test framework
 [shUnit2](https://github.com/kward/shunit2).
 
-First, you will need to initialize, and potentially update, the git
-submodules:
+First, you need to initialize, and potentially update, the git submodules:
 ```sh
 git submodule update --init --recursive
 ```
