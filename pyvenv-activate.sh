@@ -449,8 +449,29 @@ _pyvenv_activate_get_venv_dir() {
     unset pa_proj_file_ pa_proj_type_
     return 0
 }
+_is_any_venv_active() {
+    # Define ANSI color codes
+    RED='\033[0;31m'
+    GREEN='\033[0;32m'
+    CYAN='\033[0;36m'
+    NC='\033[0m' # No Color
+    BOLD='\033[1m'
 
-
+    if [ -n "$VIRTUAL_ENV" ]; then
+        echo -e "A ${BOLD}${RED}virtualenv${NC} environment is currently activated at: ${BOLD}${RED}$VIRTUAL_ENV${NC}. The current environment will not be activated."
+        return 0
+    elif [ -n "$CONDA_DEFAULT_ENV" ]; then
+        echo -e "A ${BOLD}${GREEN}mamba/conda${NC} environment is currently activated: ${BOLD}${GREEN}$CONDA_DEFAULT_ENV${NC}. The current environment will not be activated."
+        return 0
+    elif [ -n "$PIPENV_ACTIVE" ]; then
+        echo -e "A ${BOLD}${CYAN}pipenv${NC} environment is currently activated: ${BOLD}${CYAN}$PIPENV_ACTIVE${NC}. The current environment will not be activated."
+        return 0
+    elif [ -n "$POETRY_ACTIVE" ]; then
+        echo -e "A ${BOLD}${BLUE}poetry${NC} environment is currently activated: ${BOLD}${BLUE}$POETRY_ACTIVE${NC}. The current environment will not be activated."
+        return 0
+    fi
+    return 1
+}
 # Activate python virtual environment project in the current shell.
 #
 # Unlike `pipenv shell` or `poetry shell`, this function will not create a
@@ -471,7 +492,13 @@ _pyvenv_activate_get_venv_dir() {
 #                        `poetry env info -p` in the project directory.
 # Returns:
 #   0 on success, 1 on error.
+
 _pyvenv_activate_proj() {
+    # Check if any virtual environment is active
+    if _is_any_venv_active; then
+        return
+    fi
+    
     pa_proj_file_="$1"
     pa_proj_type_="$2"
     pa_venv_dir_="$3"
