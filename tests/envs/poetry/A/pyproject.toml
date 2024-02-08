@@ -5,4 +5,5 @@ description = ""
 authors = ["Nicolas Pauss <nicolas.pauss@intersec.com>"]
 
 [tool.poetry.dependencies]
+python = ">=3.3"
 six = "1.15.0"

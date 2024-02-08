@@ -3,3 +3,6 @@ name = "B"
 version = "0.0.0"
 description = ""
 authors = ["Nicolas Pauss <nicolas.pauss@intersec.com>"]
+
+[tool.poetry.dependencies]
+python = ">=3.3"
