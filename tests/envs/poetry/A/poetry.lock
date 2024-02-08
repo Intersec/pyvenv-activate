@@ -8,8 +8,8 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*"
 
 [metadata]
 lock-version = "1.1"
-python-versions = "*"
-content-hash = "de9577c196a2975424db38d762657d86db51d96772ef22fe293733cf8a4ee78a"
+python-versions = ">=3.3"
+content-hash = "eda38c206a3a775daf93ebbc80c37db6dca765ce5ac424445272b935022411ef"
 
 [metadata.files]
 six = [
