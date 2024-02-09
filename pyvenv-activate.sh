@@ -66,16 +66,27 @@ sys.exit(0 if pkgutil.find_loader('pipenv') else 1)
 EOF
 }
 
-# Get the current Python interpreter of Pipenv.
+# Get the current Python interpreter of Pipenv by looking at `pipenv`
+# executable shebang.
+#
+# Outputs:
+#   The path to Python executable.
+_pyvenv_activate_get_pipenv_python_exec_from_shebang() {
+    sed -n '1s/^#!\([^[:space:]]*python[23]*\)$/\1/p' \
+        "$(command -v pipenv)" 2>/dev/null
+}
+
+# Get the current Python interpreter of Pipenv by looking at executables in
+# PATH.
 #
 # Find the first python executable that have the pipenv module.
 # We privilege python3 over python2.
 #
 # Outputs:
 #   The path to Python executable.
-_pyvenv_activate_get_pipenv_python_exec() {
-    # Iterate through python3, python2 and python in tht order to find a valid
-    # python executable.
+_pyvenv_activate_get_pipenv_python_exec_from_path() {
+    # Iterate through python3, python2 and python in that order to find a
+    # valid python executable.
     for pa_python_ver in python3 python2 python; do
 
         # Iterate through each directories of $PATH.
@@ -102,6 +113,32 @@ EOF
     done
 
     unset pa_python_ver pa_path pa_python_exec
+}
+
+# Get the current Python interpreter of Pipenv.
+#
+# Outputs:
+#   The path to Python executable.
+_pyvenv_activate_get_pipenv_python_exec() {
+    # First look at the quick resolution with the shebang.
+    pa_python_exec_="$(_pyvenv_activate_get_pipenv_python_exec_from_shebang)"
+    if [ -n "$pa_python_exec_" ]; then
+        echo "$pa_python_exec_"
+        unset pa_python_exec_
+        return 0
+    fi
+
+    # Else, look at the executables in PATH.
+    pa_python_exec_="$(_pyvenv_activate_get_pipenv_python_exec_from_path)"
+    if [ -n "$pa_python_exec_" ]; then
+        echo "$pa_python_exec_"
+        unset pa_python_exec_
+        return 0
+    fi
+
+    # Not found :(
+    unset pa_python_exec_
+    return 1
 }
 
 # Get dotenv variables by loading dotenv file with Python dotenv module.
