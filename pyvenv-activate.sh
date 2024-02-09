@@ -35,6 +35,7 @@ if (builtin printf "123" >/dev/null 2>&1); then
     }
 else
     _pyvenv_activate_builtin_cd() {
+        # shellcheck disable=SC2164
         command cd "$@"
     }
 fi
@@ -532,7 +533,7 @@ _pyvenv_activate_proj() {
         export POETRY_ACTIVE=1
     fi
 
-    # shellcheck disable=SC1090
+    # shellcheck disable=SC1090,SC1091
     . "$pa_venv_dir_/bin/activate" || return 1
 
     unset pa_proj_file_ pa_proj_type_ pa_venv_dir_
@@ -688,6 +689,7 @@ _pyvenv_auto_activate_enable_redefine_cd() {
     fi
 
     cd() {
+        # shellcheck disable=SC2317
         _pyvenv_activate_builtin_cd "$@" && pyvenv_auto_activate_check_proj
     }
 
@@ -922,7 +924,7 @@ pyvenv_setup_venv_file_path() {
     pa_abs_pwd_="$(_pyvenv_activate_get_dir_abs_path "$PWD")"
     if [ -n "$VIRTUAL_ENV" ] && \
         [ -n "$_PYVENV_AUTO_ACTIVATE_ENABLED" ] && \
-        [ "${pa_abs_pwd_##$pa_proj_path_}" != "$pa_abs_pwd_" ]; then
+        [ "${pa_abs_pwd_##"$pa_proj_path_"}" != "$pa_abs_pwd_" ]; then
         export _PYVENV_AUTO_ACTIVATE_PROJ_FILE="$pa_venv_file_"
     fi
 

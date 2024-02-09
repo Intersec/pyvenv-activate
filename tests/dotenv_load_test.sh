@@ -3,6 +3,8 @@
 #   shellcheck disable=SC1090,SC1091
 # Disable optional arguments.
 #   shellcheck disable=SC2120
+# Command appears to be unreachable.
+#   shellcheck disable=SC2317
 
 
 TEST_SCRIPT="$0"
