@@ -45,7 +45,7 @@ SHUNIT_PARENT="$(cd -P -- "$TEST_DIR" \
 
 
 # }}}
-# {{{ Setup pipenv environments
+# {{{ Setup test environments
 
 
 # Use all default Pipenv environment variables.
@@ -97,17 +97,17 @@ th_setup_envs_tmpdir() {
 
     cp -R -- "$TEST_DIR/envs/." "$TEST_ENVS_TMPDIR"
 
-    for th_env_ in "$TEST_ENVS_TMPDIR/pipenv"/*; do
-        (cd -- "$th_env_" && pipenv install) || return 1
-    done
+    # Iterate on each environment
+    for th_env_ in A B C D D/Sub; do
+        # Setup pipenv
+        (cd -- "$TEST_ENVS_TMPDIR/pipenv/$th_env_" && pipenv install) || return 1
 
-    for th_env_ in "$TEST_ENVS_TMPDIR/poetry"/*; do
-        (cd -- "$th_env_" && poetry install) || return 1
-    done
+        # Setup poetry
+        (cd -- "$TEST_ENVS_TMPDIR/poetry/$th_env_" && poetry install) || return 1
 
-    for th_env_ in "$TEST_ENVS_TMPDIR/venv"/*; do
+        # Setup venv
         (
-            cd -- "$th_env_" && \
+            cd -- "$TEST_ENVS_TMPDIR/venv/$th_env_" && \
             virtualenv .pyvenv_venv && \
             . .pyvenv_venv/bin/activate && \
             ! test -r requirements.txt || \
@@ -115,8 +115,10 @@ th_setup_envs_tmpdir() {
         ) || return 1
     done
 
+    # Create flag file to marked as already setup
     touch "$TEST_ENVS_TMPDIR/.setup" || return 1
     echo
+
     unset th_env_
 
     return 0
