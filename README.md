@@ -1,6 +1,6 @@
 # Pyvenv activate
 
-[![Build Status](https://dev.azure.com/nicolaspauss/nicolaspauss/_apis/build/status/Intersec.pyvenv-activate?branchName=master)](https://dev.azure.com/nicolaspauss/nicolaspauss/_build/latest?definitionId=5&branchName=master)
+[![Tests](https://github.com/Intersec/pyvenv-activate/actions/workflows/.github/workflows/tests.yml/badge.svg)](https://github.com/Intersec/pyvenv-activate/actions)
 [![License](https://img.shields.io/github/license/Intersec/pyvenv-activate)](https://github.com/Intersec/pyvenv-activate/blob/master/LICENSE)
 
 `pyvenv-activate.sh` is a POSIX shell script containing functions to manually
