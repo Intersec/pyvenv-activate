@@ -1,5 +1,11 @@
 # Change log
 
+## [2.1] - 2024-02-19
+
+- Fix broken tests with old Azure pipeline. Use Github actions instead.
+- Add `PYVENV_ACTIVATE_TOP_LEVEL_ENV` option to use top-level environment instead of lowest level by default (#4).
+- Add `pyvenv_reactivate` command.
+
 ## [2.0] - 2021-07-22
 
 - Rename `pipenv-activate` to `pyvenv-activate`.
