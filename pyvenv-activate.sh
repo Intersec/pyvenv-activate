@@ -5,8 +5,26 @@
 # shell.
 
 # shellcheck disable=SC2034
+
+# The version of pyvenv-activate.
 PYVENV_ACTIVATE_VERSION=2.0
+
+# The file name used to store the path of the virtual environment when using
+# venv projects.
 PYVENV_ACTIVATE_VENV_PATH_FILE_NAME=.pyvenv_venv_path
+
+# Use top-level environment instead of lowest level by default.
+# By default, we choose the lowest level of environment because this is the
+# one that should have the correct environment for the current project.
+# Set it to '1' to activate using top-level environment.
+# Default is '0', which means that we use the lowest level of environment.
+#
+# WARNING: Activating this option can have some unwanted behaviour with
+# Pipenv.
+# Pipenv commands always use the lowest level of environment even if a top
+# level environment is already activated.
+# So `pipenv run <command>` will not have the expected behaviour.
+PYVENV_ACTIVATE_TOP_LEVEL_ENV=0
 
 # {{{ Helpers
 
@@ -369,28 +387,35 @@ _pyvenv_activate_find_proj() {
     fi
 
     pa_i_=0
+    pa_proj_=
 
     while true; do
         pa_proj_file_="$pa_current_dir_/Pipfile.lock"
         if [ "$pa_i_" -lt "$pa_pipenv_max_depth_" ] \
         && [ -r "$pa_proj_file_" ]; then
             # Pipfile has been found according to the max depth.
-            _pyvenv_activate_safe_echo "pipenv:$pa_proj_file_"
-            break
+            pa_proj_="pipenv:$pa_proj_file_"
+            if [ "$PYVENV_ACTIVATE_TOP_LEVEL_ENV" -eq 0 ]; then
+                break
+            fi
         fi
 
         pa_proj_file_="$pa_current_dir_/poetry.lock"
         if [ -r "$pa_current_dir_/poetry.lock" ]; then
             # Poetry has been found.
-            _pyvenv_activate_safe_echo "poetry:$pa_proj_file_"
-            break
+            pa_proj_="poetry:$pa_proj_file_"
+            if [ "$PYVENV_ACTIVATE_TOP_LEVEL_ENV" -eq 0 ]; then
+                break
+            fi
         fi
 
         pa_proj_file_="$pa_current_dir_/$PYVENV_ACTIVATE_VENV_PATH_FILE_NAME"
         if [ -r "$pa_proj_file_" ]; then
             # Venv path file has been found.
-            _pyvenv_activate_safe_echo "venv:$pa_proj_file_"
-            break
+            pa_proj_="venv:$pa_proj_file_"
+            if [ "$PYVENV_ACTIVATE_TOP_LEVEL_ENV" -eq 0 ]; then
+                break
+            fi
         fi
 
         if [ -z "$pa_current_dir_" ] || [ "$pa_current_dir_" = "/" ]; then
@@ -404,7 +429,11 @@ _pyvenv_activate_find_proj() {
         pa_current_dir_="${pa_current_dir_%/*}"
     done
 
-    unset pa_current_dir_ pa_pipenv_max_depth_ pa_i_ pa_proj_file_
+    if [ -n "$pa_proj_" ]; then
+        _pyvenv_activate_safe_echo "$pa_proj_"
+    fi
+
+    unset pa_current_dir_ pa_pipenv_max_depth_ pa_i_ pa_proj_ pa_proj_file_
 }
 
 # Get python virtual environment directory of the project.
@@ -421,17 +450,30 @@ _pyvenv_activate_find_proj() {
 _pyvenv_activate_get_venv_dir() {
     pa_proj_file_="$1"
     pa_proj_type_="$2"
+    pa_proj_dir_="${pa_proj_file_%/*}"
 
     case "$pa_proj_type_" in
         pipenv)
-            if ! pipenv --venv; then
+            # Change directory to proj file directory to get the correct
+            # environment path
+            if ! (
+                    unset VIRTUAL_ENV;
+                    _pyvenv_activate_builtin_cd "$pa_proj_dir_" && \
+                    pipenv --venv
+            ); then
                 unset pa_proj_file_ pa_proj_type_
                 return 1
             fi
             ;;
 
         poetry)
-            if ! (unset VIRTUAL_ENV; poetry env info -p); then
+            # Change directory to proj file directory to get the correct
+            # environment path
+            if ! (
+                    unset VIRTUAL_ENV;
+                    _pyvenv_activate_builtin_cd "$pa_proj_dir_" && \
+                    poetry env info -p
+            ); then
                 unset pa_proj_file_ pa_proj_type_
                 return 1
             fi
@@ -484,7 +526,7 @@ _pyvenv_activate_get_venv_dir() {
             ;;
     esac
 
-    unset pa_proj_file_ pa_proj_type_
+    unset pa_proj_file_ pa_proj_type_ pa_proj_dir_
     return 0
 }
 
