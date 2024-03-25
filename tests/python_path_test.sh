@@ -212,7 +212,7 @@ test_pyvenv_activate_pipenv() {
     # Using `pyvenv_deactivate` twice has no effect and should not fail.
     pyvenv_deactivate || fail "pyvenv_deactivate no op"
 
-    # Check python path is the host one after pyvenv_deactivate.
+    # Check python path is the host after pyvenv_deactivate.
     assertEquals "python path to host after pyvenv_deactivate"\
         "$HOST_PYTHON_PATH" "$(th_get_python_path)"
 
@@ -263,6 +263,24 @@ test_pyvenv_activate_pipenv() {
         "$env_d_sub_python_path" "$(th_get_python_path)"
 
     # Deactivate the pyvenv environment of env D/Sub, we get the host python path.
+    pyvenv_deactivate || fail "deactivate env D/Sub"
+    assertEquals "python path equals to host after pyvenv_deactivate of env D/Sub"\
+        "$HOST_PYTHON_PATH" "$(th_get_python_path)"
+
+    # Reactivate environment of env D
+    pyvenv_reactivate 2>/dev/null || fail "pyvenv_reactivate in env D"
+    assertEquals "python path to env D after pyvenv_reactivate"\
+        "$env_d_python_path" "$(th_get_python_path)"
+
+    # Change directory to env D/Sub
+    cd -- "$TEST_ENVS_PIPENV/D/Sub" || fail "cd to env D/Sub"
+
+    # Reactivate environment of env D/Sub
+    pyvenv_reactivate 2>/dev/null || fail "pyvenv_reactivate in env D/Sub"
+    assertEquals "python path to env D/Sub after pyvenv_reactivate"\
+        "$env_d_sub_python_path" "$(th_get_python_path)"
+
+    # Clean-up, deactivate the pyvenv environment of env D/Sub, we get the host python path.
     pyvenv_deactivate || fail "deactivate env D/Sub"
     assertEquals "python path equals to host after pyvenv_deactivate of env D/Sub"\
         "$HOST_PYTHON_PATH" "$(th_get_python_path)"
@@ -336,7 +354,7 @@ test_pyvenv_activate_poetry() {
     # Using `pyvenv_deactivate` twice has no effect and should not fail.
     pyvenv_deactivate || fail "pyvenv_deactivate no op"
 
-    # Check python path is the host one after pyvenv_deactivate.
+    # Check python path is the host after pyvenv_deactivate.
     assertEquals "python path to host after pyvenv_deactivate"\
         "$HOST_PYTHON_PATH" "$(th_get_python_path)"
 
@@ -387,6 +405,24 @@ test_pyvenv_activate_poetry() {
         "$env_d_sub_python_path" "$(th_get_python_path)"
 
     # Deactivate the pyvenv environment of env D/Sub, we get the host python path.
+    pyvenv_deactivate || fail "deactivate env D/Sub"
+    assertEquals "python path equals to host after pyvenv_deactivate of env D/Sub"\
+        "$HOST_PYTHON_PATH" "$(th_get_python_path)"
+
+    # Reactivate environment of env D
+    pyvenv_reactivate 2>/dev/null || fail "pyvenv_reactivate in env D"
+    assertEquals "python path to env D after pyvenv_reactivate"\
+        "$env_d_python_path" "$(th_get_python_path)"
+
+    # Change directory to env D/Sub
+    cd -- "$TEST_ENVS_POETRY/D/Sub" || fail "cd to env D/Sub"
+
+    # Reactivate environment of env D/Sub
+    pyvenv_reactivate 2>/dev/null || fail "pyvenv_reactivate in env D/Sub"
+    assertEquals "python path to env D/Sub after pyvenv_reactivate"\
+        "$env_d_sub_python_path" "$(th_get_python_path)"
+
+    # Clean-up, deactivate the pyvenv environment of env D/Sub, we get the host python path.
     pyvenv_deactivate || fail "deactivate env D/Sub"
     assertEquals "python path equals to host after pyvenv_deactivate of env D/Sub"\
         "$HOST_PYTHON_PATH" "$(th_get_python_path)"
@@ -460,7 +496,7 @@ test_pyvenv_activate_venv() {
     # Using `pyvenv_deactivate` twice has no effect and should not fail.
     pyvenv_deactivate || fail "pyvenv_deactivate no op"
 
-    # Check python path is the host one after pyvenv_deactivate.
+    # Check python path is the host after pyvenv_deactivate.
     assertEquals "python path to host after pyvenv_deactivate"\
         "$HOST_PYTHON_PATH" "$(th_get_python_path)"
 
@@ -511,6 +547,24 @@ test_pyvenv_activate_venv() {
         "$env_d_sub_python_path" "$(th_get_python_path)"
 
     # Deactivate the pyvenv environment of env D/Sub, we get the host python path.
+    pyvenv_deactivate || fail "deactivate env D/Sub"
+    assertEquals "python path equals to host after pyvenv_deactivate of env D/Sub"\
+        "$HOST_PYTHON_PATH" "$(th_get_python_path)"
+
+    # Reactivate environment of env D
+    pyvenv_reactivate 2>/dev/null || fail "pyvenv_reactivate in env D"
+    assertEquals "python path to env D after pyvenv_reactivate"\
+        "$env_d_python_path" "$(th_get_python_path)"
+
+    # Change directory to env D/Sub
+    cd -- "$TEST_ENVS_VENV/D/Sub" || fail "cd to env D/Sub"
+
+    # Reactivate environment of env D/Sub
+    pyvenv_reactivate 2>/dev/null || fail "pyvenv_reactivate in env D/Sub"
+    assertEquals "python path to env D/Sub after pyvenv_reactivate"\
+        "$env_d_sub_python_path" "$(th_get_python_path)"
+
+    # Clean-up, deactivate the pyvenv environment of env D/Sub, we get the host python path.
     pyvenv_deactivate || fail "deactivate env D/Sub"
     assertEquals "python path equals to host after pyvenv_deactivate of env D/Sub"\
         "$HOST_PYTHON_PATH" "$(th_get_python_path)"

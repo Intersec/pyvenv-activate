@@ -700,6 +700,19 @@ pyvenv_deactivate() {
 }
 
 # }}}
+# {{{ Pyvenv reactivate
+
+# Deactivate and activate the python virtual environment in the current shell.
+#
+# It is equivalent of doing `pyvenv_deactivate && pyvenv_activate`.
+#
+# Returns:
+#   0 on success, 1 on error.
+pyvenv_reactivate() {
+    pyvenv_deactivate && pyvenv_activate
+}
+
+# }}}
 # {{{ Pyvenv auto activate
 # {{{ Check project
 
