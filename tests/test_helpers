@@ -103,7 +103,7 @@ th_setup_envs_tmpdir() {
         (cd -- "$TEST_ENVS_TMPDIR/pipenv/$th_env_" && pipenv install) || return 1
 
         # Setup poetry
-        (cd -- "$TEST_ENVS_TMPDIR/poetry/$th_env_" && poetry install) || return 1
+        (cd -- "$TEST_ENVS_TMPDIR/poetry/$th_env_" && poetry install --no-root) || return 1
 
         # Setup venv
         (
