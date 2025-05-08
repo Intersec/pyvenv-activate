@@ -92,6 +92,9 @@ unset POETRY_VIRTUALENVS_PATH
 # Except this one.
 export POETRY_VIRTUALENVS_IN_PROJECT=1
 
+# Use default venv UV directory
+unset UV_PROJECT_ENVIRONMENT
+
 th_setup_envs_tmpdir() {
     echo "Setting up environments temporary directory '$TEST_ENVS_TMPDIR'" >&2
 
@@ -104,6 +107,9 @@ th_setup_envs_tmpdir() {
 
         # Setup poetry
         (cd -- "$TEST_ENVS_TMPDIR/poetry/$th_env_" && poetry install --no-root) || return 1
+
+        # Setup uv
+        (cd -- "$TEST_ENVS_TMPDIR/uv/$th_env_" && uv sync --locked) || return 1
 
         # Setup venv
         (
@@ -151,11 +157,30 @@ th_get_poetry_venv() {
     fi
 }
 
+th_get_uv_venv() {
+    th_get_env_var 'VIRTUAL_ENV' 'uv run' 2>/dev/null
+}
+
 th_get_env_var() {
     env_var="$1"
     cmd_prefix="${2:-}"
 
     $cmd_prefix python3 -c "import os; print(os.environ.get('$env_var', ''))"
+}
+
+th_real_path() {
+    path="$1"
+
+    if [ -n "$ZSH_VERSION" ]; then
+        # shellcheck disable=SC3057
+        echo "${path:A}"
+    elif command -v realpath 2>/dev/null; then
+        realpath "$path"
+    elif command -v readlink 2>/dev/null; then
+        readlink -f "$path"
+    else
+        echo "$path"
+    fi
 }
 
 th_pyvenv_setup_venv_file_path() {
@@ -199,6 +224,7 @@ th_oneTimeSetUp() {
 
     TEST_ENVS_PIPENV="$TEST_ENVS_TMPDIR/pipenv"
     TEST_ENVS_POETRY="$TEST_ENVS_TMPDIR/poetry"
+    TEST_ENVS_UV="$TEST_ENVS_TMPDIR/uv"
     TEST_ENVS_VENV="$TEST_ENVS_TMPDIR/venv"
 
     HOST_PYTHON_PATH="$(th_get_python_path '')"

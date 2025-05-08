@@ -93,6 +93,35 @@ test_poetry_run() {
 }
 
 
+th_register_test test_uv_run
+test_uv_run() {
+    # Change directory to env C and check dotenv variables.
+    # uv should not load .env file.
+    cd -- "$TEST_ENVS_UV/C" || fail "cd to env C"
+    assertNull "VAR A in env C" "$(th_get_env_var "VAR_A" 'uv run')"
+    assertNull "VAR B in env C" "$(th_get_env_var "VAR_B" 'uv run')"
+    assertNull "VAR C in env C" "$(th_get_env_var "VAR_C" 'uv run')"
+    assertNull "VAR D in env C" "$(th_get_env_var "VAR_D" 'uv run')"
+    assertNull "VAR E in env C" "$(th_get_env_var "VAR_E" 'uv run')"
+    assertNull "VAR F in env C" "$(th_get_env_var "VAR_F" 'uv run')"
+    assertEquals "VAR G in env C" "$TEST_VAR_G" "$(th_get_env_var "VAR_G" 'uv run')"
+    assertEquals "VAR F in shell env" "$TEST_VAR_F" "$VAR_F"
+    assertEquals "VAR G in shell env" "$TEST_VAR_G" "$VAR_G"
+
+    # Change directory to env B and check dotenv variables.
+    cd -- "$TEST_ENVS_UV/B" || fail "cd to env B"
+    assertNull "VAR A in env B" "$(th_get_env_var "VAR_A" 'uv run')"
+    assertNull "VAR B in env B" "$(th_get_env_var "VAR_B" 'uv run')"
+    assertNull "VAR C in env B" "$(th_get_env_var "VAR_C" 'uv run')"
+    assertNull "VAR D in env B" "$(th_get_env_var "VAR_D" 'uv run')"
+    assertNull "VAR E in env B" "$(th_get_env_var "VAR_E" 'uv run')"
+    assertNull "VAR F in env B" "$(th_get_env_var "VAR_F" 'uv run')"
+    assertEquals "VAR G in env B" "$TEST_VAR_G" "$(th_get_env_var "VAR_G" 'uv run')"
+    assertEquals "VAR F in shell env" "$TEST_VAR_F" "$VAR_F"
+    assertEquals "VAR G in shell env" "$TEST_VAR_G" "$VAR_G"
+}
+
+
 th_register_test test_venv_manual
 test_venv_manual() {
     # Activate env C and check dotenv variables.
@@ -173,6 +202,39 @@ test_pyvenv_activate_poetry() {
 
     # Change directory to env B and check dotenv variables.
     cd -- "$TEST_ENVS_POETRY/B" || fail "cd to env B"
+    pyvenv_activate || fail "pyvenv_activate in env B"
+    assertNull "VAR A in env B" "$(th_get_env_var "VAR_A")"
+    assertNull "VAR B in env B" "$(th_get_env_var "VAR_B")"
+    assertNull "VAR C in env B" "$(th_get_env_var "VAR_C")"
+    assertNull "VAR D in env B" "$(th_get_env_var "VAR_D")"
+    assertNull "VAR E in env B" "$(th_get_env_var "VAR_E")"
+    assertNull "VAR F in env B" "$(th_get_env_var "VAR_F")"
+    assertEquals "VAR G in env B" "$TEST_VAR_G" "$(th_get_env_var "VAR_G")"
+    assertEquals "VAR F in shell env" "$TEST_VAR_F" "$VAR_F"
+    assertEquals "VAR G in shell env" "$TEST_VAR_G" "$VAR_G"
+    pyvenv_deactivate || fail "pyvenv_deactivate env B"
+}
+
+
+th_register_test test_pyvenv_activate_uv
+test_pyvenv_activate_uv() {
+    # Change directory to env C and check dotenv variables.
+    # uv should not load .env file.
+    cd -- "$TEST_ENVS_UV/C" || fail "cd to env C"
+    pyvenv_activate || fail "pyvenv_activate in env C"
+    assertNull "VAR A in env C" "$(th_get_env_var "VAR_A")"
+    assertNull "VAR B in env C" "$(th_get_env_var "VAR_B")"
+    assertNull "VAR C in env C" "$(th_get_env_var "VAR_C")"
+    assertNull "VAR D in env C" "$(th_get_env_var "VAR_D")"
+    assertNull "VAR E in env C" "$(th_get_env_var "VAR_E")"
+    assertNull "VAR F in env C" "$(th_get_env_var "VAR_F")"
+    assertEquals "VAR G in env C" "$TEST_VAR_G" "$(th_get_env_var "VAR_G")"
+    assertEquals "VAR F in shell env" "$TEST_VAR_F" "$VAR_F"
+    assertEquals "VAR G in shell env" "$TEST_VAR_G" "$VAR_G"
+    pyvenv_deactivate || fail "pyvenv_deactivate env C"
+
+    # Change directory to env B and check dotenv variables.
+    cd -- "$TEST_ENVS_UV/B" || fail "cd to env B"
     pyvenv_activate || fail "pyvenv_activate in env B"
     assertNull "VAR A in env B" "$(th_get_env_var "VAR_A")"
     assertNull "VAR B in env B" "$(th_get_env_var "VAR_B")"
@@ -284,6 +346,46 @@ test_pyvenv_auto_activate_poetry() {
 
     # Change directory to env B and check dotenv variables.
     $cd_cmd -- "$TEST_ENVS_POETRY/B" || fail "cd to env B"
+    assertNull "VAR A in env B" "$(th_get_env_var "VAR_A")"
+    assertNull "VAR B in env B" "$(th_get_env_var "VAR_B")"
+    assertNull "VAR C in env B" "$(th_get_env_var "VAR_C")"
+    assertNull "VAR D in env B" "$(th_get_env_var "VAR_D")"
+    assertNull "VAR E in env B" "$(th_get_env_var "VAR_E")"
+    assertNull "VAR F in env B" "$(th_get_env_var "VAR_F")"
+    assertEquals "VAR G in env B" "$TEST_VAR_G" "$(th_get_env_var "VAR_G")"
+    assertEquals "VAR F in shell env" "$TEST_VAR_F" "$VAR_F"
+    assertEquals "VAR G in shell env" "$TEST_VAR_G" "$VAR_G"
+
+    # Go back to envs tmpdir
+    $cd_cmd -- "$TEST_ENVS_TMPDIR" || fail "cd to envs tmpdir"
+
+    $disable_cmd || fail "disable auto activate"
+}
+
+
+th_register_auto_activate_tests test_pyvenv_auto_activate_uv
+test_pyvenv_auto_activate_uv() {
+    enable_cmd="$1"
+    disable_cmd="$2"
+    cd_cmd="$3"
+
+    $enable_cmd || fail "enable auto activate"
+
+    # Change directory to env C and check dotenv variables.
+    # uv should not load .env file.
+    $cd_cmd -- "$TEST_ENVS_UV/C" || fail "cd to env C"
+    assertNull "VAR A in env C" "$(th_get_env_var "VAR_A")"
+    assertNull "VAR B in env C" "$(th_get_env_var "VAR_B")"
+    assertNull "VAR C in env C" "$(th_get_env_var "VAR_C")"
+    assertNull "VAR D in env C" "$(th_get_env_var "VAR_D")"
+    assertNull "VAR E in env C" "$(th_get_env_var "VAR_E")"
+    assertNull "VAR F in env C" "$(th_get_env_var "VAR_F")"
+    assertEquals "VAR G in env C" "$TEST_VAR_G" "$(th_get_env_var "VAR_G")"
+    assertEquals "VAR F in shell env" "$TEST_VAR_F" "$VAR_F"
+    assertEquals "VAR G in shell env" "$TEST_VAR_G" "$VAR_G"
+
+    # Change directory to env B and check dotenv variables.
+    $cd_cmd -- "$TEST_ENVS_UV/B" || fail "cd to env B"
     assertNull "VAR A in env B" "$(th_get_env_var "VAR_A")"
     assertNull "VAR B in env B" "$(th_get_env_var "VAR_B")"
     assertNull "VAR C in env B" "$(th_get_env_var "VAR_C")"

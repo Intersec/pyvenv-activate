@@ -137,6 +137,32 @@ test_poetry_run() {
 }
 
 
+th_register_test test_uv_run
+test_uv_run() {
+    # Check test environment is ok.
+    assertNull "check NULL host venv" "$(th_get_uv_venv)"
+
+    # Change directory to env A and check uv venv.
+    cd -- "$TEST_ENVS_UV/A" || fail "cd to env A"
+    env_a_uv_venv="$(th_get_uv_venv)"
+    assertNotNull "uv venv not NULL in env A" "$env_a_uv_venv"
+
+    # Check PIPENV_MAX_DEPTH has not effect with uv projects.
+    export PIPENV_MAX_DEPTH=1
+    cd -- "$TEST_ENVS_UV/A/1/2/3" || fail "cd to env A/1/2/3"
+    assertEquals "PIPENV_MAX_DEPTH has not effect on uv project env A"\
+        "$env_a_uv_venv" "$(th_get_uv_venv)"
+    unset PIPENV_MAX_DEPTH
+
+    # Check PIPENV_NO_INHERIT has not effect with uv projects.
+    export PIPENV_NO_INHERIT=1
+    cd -- "$TEST_ENVS_UV/A/1/2/3" || fail "cd to env A/1/2/3"
+    assertEquals "PIPENV_NO_INHERIT has not effect on uv project env A"\
+        "$env_a_uv_venv" "$(th_get_uv_venv)"
+    unset PIPENV_NO_INHERIT
+}
+
+
 th_register_test test_pyvenv_activate_pipenv
 test_pyvenv_activate_pipenv() {
     # Check test environment is ok.
@@ -277,6 +303,84 @@ test_pyvenv_activate_poetry() {
         "$env_a_python_path" "$(th_get_python_path)"
     pyvenv_deactivate || fail "deactivate env A"
     unset PIPENV_NO_INHERIT
+}
+
+
+th_register_test test_pyvenv_activate_uv
+test_pyvenv_activate_uv() {
+    # Check test environment is ok.
+    assertEquals "check host env" "$HOST_PYTHON_PATH" "$(th_get_python_path)"
+
+    # Change directory to env A and check python path.
+    cd -- "$TEST_ENVS_UV/A" || fail "cd to env A"
+    pyvenv_activate || fail "pyvenv_activate in env A"
+    env_a_python_path="$(th_get_python_path)"
+    assertNotEquals "python path not equals to host in env A"\
+        "$HOST_PYTHON_PATH" "$env_a_python_path"
+    pyvenv_deactivate || fail "deactivate env A"
+
+    # Check PIPENV_MAX_DEPTH has not effect with uv projects.
+    export PIPENV_MAX_DEPTH=1
+    cd -- "$TEST_ENVS_UV/A/1/2/3" || fail "cd to env A/1/2/3"
+    pyvenv_activate || fail "pyvenv_activate in env A/1/2/3"
+    assertEquals "PIPENV_MAX_DEPTH has not effect on uv project env A"\
+        "$env_a_python_path" "$(th_get_python_path)"
+    pyvenv_deactivate || fail "deactivate env A"
+    unset PIPENV_MAX_DEPTH
+
+    # Check PIPENV_NO_INHERIT has not effect with uv projects.
+    export PIPENV_NO_INHERIT=1
+    cd -- "$TEST_ENVS_UV/A/1/2/3" || fail "cd to env A/1/2/3"
+    pyvenv_activate || fail "pyvenv_activate in env A/1/2/3"
+    assertEquals "PIPENV_NO_INHERIT has not effect on uv project env A"\
+        "$env_a_python_path" "$(th_get_python_path)"
+    pyvenv_deactivate || fail "deactivate env A"
+    unset PIPENV_NO_INHERIT
+
+    host_virtual_env="$(th_get_env_var 'VIRTUAL_ENV')"
+    assertNull "check NULL host VIRTUAL_ENV" "$host_virtual_env"
+
+    # Check default .venv directory
+    cd -- "$TEST_ENVS_UV/A" || fail "cd to env A"
+    pyvenv_activate || fail "pyvenv_activate in env A"
+    default_uv_venv="$(th_get_uv_venv)"
+    default_venv_virtual_env="$(th_get_env_var 'VIRTUAL_ENV')"
+    assertNotNull "check not NULL venv VIRTUAL_ENV" "$default_uv_venv"
+    assertEquals "default .venv uv run VIRTUAL_ENV after activate"\
+        "$default_uv_venv" "$default_venv_virtual_env"
+    pyvenv_deactivate || fail "deactivate env A"
+
+    # Check relative project environment
+    export UV_PROJECT_ENVIRONMENT='relative_venv'
+    cd -- "$TEST_ENVS_UV/A" || fail "cd to env A"
+    uv sync --locked || fail "uv sync for relative env"
+    pyvenv_activate || fail "pyvenv_activate in env A"
+    relative_uv_venv="$(th_get_uv_venv)"
+    relative_venv_virtual_env="$(th_get_env_var 'VIRTUAL_ENV')"
+    assertNotNull "check not NULL venv VIRTUAL_ENV" "$relative_uv_venv"
+    assertEquals "relative uv run VIRTUAL_ENV after activate"\
+        "$relative_uv_venv" "$relative_venv_virtual_env"
+    assertNotEquals "relative different than default uv run VIRTUAL_ENV after activate"\
+        "$relative_uv_venv" "$default_uv_venv"
+    pyvenv_deactivate || fail "deactivate env A"
+    unset UV_PROJECT_ENVIRONMENT
+
+    # Check absolute project environment
+    export UV_PROJECT_ENVIRONMENT="$TEST_ENVS_UV/A/absolute_venv"
+    cd -- "$TEST_ENVS_UV/A" || fail "cd to env A"
+    uv sync --locked || fail "uv sync for absolute env"
+    pyvenv_activate || fail "pyvenv_activate in env A"
+    absolute_uv_venv="$(th_real_path "$(th_get_uv_venv)")"
+    absolute_venv_virtual_env="$(th_real_path "$(th_get_env_var 'VIRTUAL_ENV')")"
+    assertNotNull "check not NULL venv VIRTUAL_ENV" "$absolute_uv_venv"
+    assertEquals "absolute uv run VIRTUAL_ENV after activate"\
+        "$absolute_uv_venv" "$absolute_venv_virtual_env"
+    assertNotEquals "absolute different than default uv run VIRTUAL_ENV after activate"\
+        "$absolute_uv_venv" "$default_uv_venv"
+    assertNotEquals "absolute different than relative uv run VIRTUAL_ENV after activate"\
+        "$absolute_uv_venv" "$relative_uv_venv"
+    pyvenv_deactivate || fail "deactivate env A"
+    unset UV_PROJECT_ENVIRONMENT
 }
 
 
@@ -446,6 +550,44 @@ test_pyvenv_auto_activate_poetry() {
     export PIPENV_NO_INHERIT=1
     $cd_cmd -- "$TEST_ENVS_POETRY/A/1/2/3" || fail "cd to env A/1/2/3"
     assertEquals "PIPENV_NO_INHERIT has not effect on poetry project env A"\
+        "$env_a_python_path" "$(th_get_python_path)"
+    unset PIPENV_NO_INHERIT
+
+    # Go back to envs tmpdir
+    $cd_cmd -- "$TEST_ENVS_TMPDIR" || fail "cd to envs tmpdir"
+
+    $disable_cmd || fail "disable auto activate"
+}
+
+
+th_register_auto_activate_tests test_pyvenv_auto_activate_uv
+test_pyvenv_auto_activate_uv() {
+    enable_cmd="$1"
+    disable_cmd="$2"
+    cd_cmd="$3"
+
+    $enable_cmd || fail "enable auto activate"
+
+    # Check test environment is ok.
+    assertEquals "check host env" "$HOST_PYTHON_PATH" "$(th_get_python_path)"
+
+    # Change directory to env A and check python path.
+    $cd_cmd -- "$TEST_ENVS_UV/A" || fail "cd to env A"
+    env_a_python_path="$(th_get_python_path)"
+    assertNotEquals "python path not equals to host in env A after cd"\
+        "$HOST_PYTHON_PATH" "$env_a_python_path"
+
+    # Check PIPENV_MAX_DEPTH has not effect with uv projects.
+    export PIPENV_MAX_DEPTH=1
+    $cd_cmd -- "$TEST_ENVS_UV/A/1/2/3" || fail "cd to env A/1/2/3"
+    assertEquals "PIPENV_MAX_DEPTH has not effect on uv project env A"\
+        "$env_a_python_path" "$(th_get_python_path)"
+    unset PIPENV_MAX_DEPTH
+
+    # Check PIPENV_NO_INHERIT has not effect with uv projects.
+    export PIPENV_NO_INHERIT=1
+    $cd_cmd -- "$TEST_ENVS_UV/A/1/2/3" || fail "cd to env A/1/2/3"
+    assertEquals "PIPENV_NO_INHERIT has not effect on uv project env A"\
         "$env_a_python_path" "$(th_get_python_path)"
     unset PIPENV_NO_INHERIT
 

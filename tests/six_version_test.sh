@@ -58,6 +58,20 @@ test_poetry_run() {
 }
 
 
+th_register_test test_uv_run
+test_uv_run() {
+    # Change directory to env A and check six version.
+    cd -- "$TEST_ENVS_UV/A" || fail "cd to env A"
+    assertEquals "six version in env A" "$ENV_1_SIX_VERSION" \
+        "$(get_six_version 'uv run')"
+
+    # Change directory to env B and check six version.
+    cd -- "$TEST_ENVS_UV/B" || fail "cd to env B"
+    assertEquals "six version in env B" "$ENV_2_SIX_VERSION" \
+        "$(get_six_version 'uv run')"
+}
+
+
 th_register_test test_manual_venv
 test_manual_venv() {
     # Activate env A and check six version.
@@ -101,6 +115,24 @@ test_pyvenv_activate_poetry() {
 
     # Change directory to env B and check six version.
     cd -- "$TEST_ENVS_POETRY/B" || fail "cd to env B"
+    pyvenv_activate || fail "pyvenv_activate in env B"
+    assertEquals "six version in env B" "$ENV_2_SIX_VERSION" \
+        "$(get_six_version)"
+    pyvenv_deactivate || fail "deactivate env B"
+}
+
+
+th_register_test test_pyvenv_activate_uv
+test_pyvenv_activate_uv() {
+    # Change directory to env A and check six version.
+    cd -- "$TEST_ENVS_UV/A" || fail "cd to env A"
+    pyvenv_activate || fail "pyvenv_activate in env A"
+    assertEquals "six version in env A" "$ENV_1_SIX_VERSION" \
+        "$(get_six_version)"
+    pyvenv_deactivate || fail "deactivate env A"
+
+    # Change directory to env B and check six version.
+    cd -- "$TEST_ENVS_UV/B" || fail "cd to env B"
     pyvenv_activate || fail "pyvenv_activate in env B"
     assertEquals "six version in env B" "$ENV_2_SIX_VERSION" \
         "$(get_six_version)"
@@ -168,6 +200,31 @@ test_pyvenv_auto_activate_poetry() {
 
     # Change directory to env B and check six version.
     $cd_cmd -- "$TEST_ENVS_POETRY/B" || fail "cd to env B"
+    assertEquals "six version in env B" "$ENV_2_SIX_VERSION" \
+        "$(get_six_version)"
+
+    # Go back to envs tmpdir
+    $cd_cmd -- "$TEST_ENVS_TMPDIR" || fail "cd to envs tmpdir"
+
+    $disable_cmd || fail "disable auto activate"
+}
+
+
+th_register_auto_activate_tests test_pyvenv_auto_activate_uv
+test_pyvenv_auto_activate_uv() {
+    enable_cmd="$1"
+    disable_cmd="$2"
+    cd_cmd="$3"
+
+    $enable_cmd || fail "enable auto activate"
+
+    # Change directory to env A and check six version.
+    $cd_cmd -- "$TEST_ENVS_UV/A" || fail "cd to env A"
+    assertEquals "six version in env A" "$ENV_1_SIX_VERSION" \
+        "$(get_six_version)"
+
+    # Change directory to env B and check six version.
+    $cd_cmd -- "$TEST_ENVS_UV/B" || fail "cd to env B"
     assertEquals "six version in env B" "$ENV_2_SIX_VERSION" \
         "$(get_six_version)"
 

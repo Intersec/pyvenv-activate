@@ -140,6 +140,13 @@ test_pyvenv_activate_poetry() {
 }
 
 
+th_register_test test_pyvenv_activate_uv
+test_pyvenv_activate_uv() {
+    # XXX: Not supported by uv
+    :
+}
+
+
 th_register_test test_pyvenv_activate_venv
 test_pyvenv_activate_venv() {
     # Activate top-level environment
@@ -307,6 +314,13 @@ test_pyvenv_auto_activate_poetry() {
 
     # Restore default lowest level environment
     export PYVENV_ACTIVATE_TOP_LEVEL_ENV=0
+}
+
+
+th_register_auto_activate_tests test_pyvenv_auto_activate_uv
+test_pyvenv_auto_activate_uv() {
+    # XXX: Not supported by uv
+    :
 }
 
 
