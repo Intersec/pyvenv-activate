@@ -698,7 +698,7 @@ EOF
 #   0 on success, 1 on error.
 pyvenv_deactivate() {
     if [ -n "$VIRTUAL_ENV" ]; then
-        deactivate nondestructive || return 1
+        command -v deactivate >/dev/null && deactivate nondestructive
         unset -f deactivate
     fi
     unset PIPENV_ACTIVE
