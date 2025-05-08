@@ -53,8 +53,7 @@ if (builtin printf "123" >/dev/null 2>&1); then
     }
 else
     _pyvenv_activate_builtin_cd() {
-        # shellcheck disable=SC2164
-        command cd "$@"
+        command cd "$@" || return 1
     }
 fi
 
@@ -1023,6 +1022,7 @@ pyvenv_setup_venv_file_path() {
     # Set auto activate if it is enabled, there is a virtual env activated and
     # if we are in the project.
     pa_abs_pwd_="$(_pyvenv_activate_get_dir_abs_path "$PWD")"
+    # shellcheck disable=SC2295
     if [ -n "$VIRTUAL_ENV" ] && \
         [ -n "$_PYVENV_AUTO_ACTIVATE_ENABLED" ] && \
         [ "${pa_abs_pwd_##"$pa_proj_path_"}" != "$pa_abs_pwd_" ]; then
