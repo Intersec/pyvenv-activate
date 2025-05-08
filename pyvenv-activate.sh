@@ -77,10 +77,19 @@ _pyvenv_activate_get_dir_abs_path() {
 #   0 on if found, 1 if not found.
 _pyvenv_activate_find_pipenv_module() {
     "$1" - <<EOF
-import pkgutil
 import sys
 
-sys.exit(0 if pkgutil.find_loader('pipenv') else 1)
+try:
+    if sys.version_info >= (3, 4):
+        import importlib.util
+        res = importlib.util.find_spec('pipenv')
+    else:
+        import pkgutil
+        res = pkgutil.find_loader('pipenv')
+except Exception:
+    res = None
+
+sys.exit(0 if res else 1)
 EOF
 }
 
