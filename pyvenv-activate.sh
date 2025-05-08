@@ -24,6 +24,7 @@ PYVENV_ACTIVATE_VENV_PATH_FILE_NAME=.pyvenv_venv_path
 # Pipenv commands always use the lowest level of environment even if a top
 # level environment is already activated.
 # So `pipenv run <command>` will not have the expected behaviour.
+# This feature is not available for 'uv'.
 PYVENV_ACTIVATE_TOP_LEVEL_ENV=0
 
 # {{{ Helpers
@@ -369,7 +370,8 @@ EOF
 #
 # Outputs:
 #   "$proj_type:$proj_dir" with:
-#       - proj_type: the project type, either "pipenv" or "poetry".
+#       - proj_type: the project type, either "pipenv", "poetry", "uv" or
+#                    "venv".
 #       - proj_dir:  the project root directory.
 _pyvenv_activate_find_proj() {
     if [ -n "$PIPENV_PIPFILE" ] && [ -r "$PIPENV_PIPFILE" ]; then
@@ -409,12 +411,27 @@ _pyvenv_activate_find_proj() {
         fi
 
         pa_proj_file_="$pa_current_dir_/poetry.lock"
-        if [ -r "$pa_current_dir_/poetry.lock" ]; then
+        if [ -r "$pa_proj_file_" ]; then
             # Poetry has been found.
             pa_proj_="poetry:$pa_proj_file_"
             if [ "$PYVENV_ACTIVATE_TOP_LEVEL_ENV" -eq 0 ]; then
                 break
             fi
+        fi
+
+        pa_proj_file_="$pa_current_dir_/uv.lock"
+        if [ -r "$pa_proj_file_" ]; then
+            # UV has been found.
+            _pyvenv_activate_safe_echo "uv:$pa_proj_file_"
+            break
+        fi
+
+        # Assuming uv for pylock.toml
+        pa_proj_file_="$pa_current_dir_/pylock.toml"
+        if [ -r "$pa_proj_file_" ]; then
+            # UV has been found.
+            _pyvenv_activate_safe_echo "uv:$pa_proj_file_"
+            break
         fi
 
         pa_proj_file_="$pa_current_dir_/$PYVENV_ACTIVATE_VENV_PATH_FILE_NAME"
@@ -449,7 +466,7 @@ _pyvenv_activate_find_proj() {
 # Args:
 #   proj_file: string: The path to the project file.
 #   proj_type: string: The type of the project to activate, "pipenv",
-#                      "poetry" or "venv".
+#                      "poetry", "uv", or "venv".
 # Outputs:
 #   The virtual environment directory.
 #
@@ -485,6 +502,26 @@ _pyvenv_activate_get_venv_dir() {
                 unset pa_proj_file_ pa_proj_type_
                 return 1
             fi
+            ;;
+
+        uv)
+            # Use command substitution to get the dirname.
+            pa_current_dir_="${pa_proj_file_%/*}"
+
+            # The default uv venv dir is in the current '.venv' directory,
+            # unless `UV_PROJECT_ENVIRONMENT` is set.
+            if [ -z "$UV_PROJECT_ENVIRONMENT" ]; then
+                # Default venv directory
+                _pyvenv_activate_safe_echo "$pa_current_dir_/.venv"
+            elif [ "${UV_PROJECT_ENVIRONMENT#/}" = "$UV_PROJECT_ENVIRONMENT" ]; then
+                # Relative $UV_PROJECT_ENVIRONMENT
+                _pyvenv_activate_safe_echo "$pa_current_dir_/$UV_PROJECT_ENVIRONMENT"
+            else
+                # Absolute $UV_PROJECT_ENVIRONMENT
+                _pyvenv_activate_safe_echo "$UV_PROJECT_ENVIRONMENT"
+            fi
+
+            unset pa_current_dir_
             ;;
 
         venv)
@@ -551,12 +588,13 @@ _pyvenv_activate_get_venv_dir() {
 #                        Default is to look for the file in the current
 #                        directory.
 #   [proj_type]: string: The type of the project to activate, "pipenv",
-#                        "poetry" or "venv".
+#                        "poetry", "uv", or "venv".
 #                        If not set, it will be automatically detected.
 #   [venv_dir]:  string: The path to the virtual environment directory to
 #                        activate.
-#                        Default is to use `pipenv --venv` or
-#                        `poetry env info -p` in the project directory.
+#                        Default is to use `pipenv --venv`,
+#                        `poetry env info -p`, or manual virtual env path in
+#                        the project directory.
 # Returns:
 #   0 on success, 1 on error.
 _pyvenv_activate_proj() {
@@ -583,6 +621,10 @@ _pyvenv_activate_proj() {
             pa_proj_type_="pipenv"
         elif [ "$pa_base_proj_file_name_" = "poetry.lock" ]; then
             pa_proj_type_="poetry"
+        elif [ "$pa_base_proj_file_name_" = "uv.lock" ]; then
+            pa_proj_type_="uv"
+        elif [ "$pa_base_proj_file_name_" = "pylock.toml" ]; then
+            pa_proj_type_="uv"
         elif [ "$pa_base_proj_file_name_" = "$PYVENV_ACTIVATE_VENV_PATH_FILE_NAME" ]; then
             pa_proj_type_="venv"
         else

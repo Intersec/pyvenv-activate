@@ -8,7 +8,8 @@ or automatically activate and deactivate the Python virtual environment of
 projects within the current shell.
 
 It currently supports [Pipenv](https://github.com/pypa/pipenv),
-[Poetry](https://github.com/python-poetry/poetry), and
+[Poetry](https://github.com/python-poetry/poetry),
+[uv](https://github.com/astral-sh/uv), and
 [manual virtual environment](#setup-venv-path-file) projects.
 
 Unlike `pipenv shell` or `poetry shell`, the virtual environment is directly
