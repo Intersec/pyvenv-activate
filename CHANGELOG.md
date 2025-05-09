@@ -1,5 +1,9 @@
 # Change log
 
+## [3.0] - 2025-05-09
+
+- Support `uv` package manager.
+
 ## [2.1] - 2024-02-19
 
 - Fix broken tests with old Azure pipeline. Use Github actions instead.

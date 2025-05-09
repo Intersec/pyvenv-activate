@@ -7,7 +7,7 @@
 # shellcheck disable=SC2034
 
 # The version of pyvenv-activate.
-PYVENV_ACTIVATE_VERSION=2.1
+PYVENV_ACTIVATE_VERSION=3.0
 
 # The file name used to store the path of the virtual environment when using
 # venv projects.
